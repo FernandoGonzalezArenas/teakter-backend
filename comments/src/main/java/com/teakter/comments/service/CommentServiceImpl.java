@@ -8,6 +8,7 @@ import com.teakter.comments.entity.CommentEntity;
 import com.teakter.comments.repository.CommentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommentServiceImpl implements CommentService{
 
     private final CommentRepository commentRepository;
@@ -37,6 +39,9 @@ public class CommentServiceImpl implements CommentService{
     comentario.setContent(comment.getContent());
 
     CommentEntity savedComment = commentRepository.save(comentario);
+
+    log.info("con estos datos se guardo el comentario: \nID = "+ savedComment.getId() +"\nfecha = "+ savedComment.getCreatedAt().toString() +"\ncontenido = "+ savedComment.getContent());
+
     return mapToDto(savedComment);
 }
 
@@ -45,6 +50,12 @@ public class CommentServiceImpl implements CommentService{
     public List<CommentsDto> getCommentsByVideo(Long videoId, Long lastId, Integer limit){
         Pageable pageable= PageRequest.of(0, limit);
         List<CommentEntity> comments= commentRepository.findNextComments(videoId, lastId, pageable);
+
+        if (!comments.isEmpty()) {
+            CommentEntity lastComment=comments.getFirst();
+            log.info("el ultimo comentario creado se retorna desde el backend con estos datos: \nID = " + lastComment.getId() + "\nfecha = " + lastComment.getCreatedAt().toString() + "\ncontenido = " + lastComment.getContent());
+        }
+
         return comments.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 

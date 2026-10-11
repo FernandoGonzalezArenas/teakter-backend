@@ -27,7 +27,8 @@ private final MinioClient minioClient;
 
 @Override
     public UploadUrlResponse generateUploadUrl(String filename){
-    String finalFilename=UUID.randomUUID()+"-"+filename;
+    String cleanFilename=sanitizeFilename(filename);
+    String finalFilename=UUID.randomUUID()+"-"+cleanFilename;
     String objectName="profiles/"+ finalFilename;
     try {
         String urlFirmada= minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
@@ -50,5 +51,21 @@ throw new RuntimeException("error en minio user: " +e.getMessage());
     String url= miniourl+"/"+bucketName+"/profiles/"+objectName;
     return url.replace("http://minio:9000", "http://localhost:8080/storage");
 }
+
+    protected String sanitizeFilename(String filename){
+        if (filename == null) return null;
+
+        //remuebe espacios multiples, tabulaciones y saltos de linea remplazandolos por "_" ademas de remover caracteres especiales
+        int lastDot=filename.lastIndexOf('.');
+        String name=(lastDot != -1) ? filename.substring(0, lastDot) : filename;
+        String extencion=(lastDot != -1) ? filename.substring(lastDot) : "";
+
+        String cleanName= name.replaceAll("\\s+", "_");
+        cleanName=cleanName.replaceAll("[^a-zA-Z0-9_-]", "");
+        String cleanExtencion=extencion.replaceAll("[^a-zA-Z0-9.]", "").toLowerCase();
+        System.out.println("el nombre de el archivo quedo como: "+ (cleanName + cleanExtencion));
+
+        return cleanName + cleanExtencion;
+    }
 
 }

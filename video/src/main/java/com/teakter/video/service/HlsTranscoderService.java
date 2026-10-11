@@ -1,5 +1,8 @@
 package com.teakter.video.service;
 
+import com.teakter.video.entity.VideoStatus;
+import com.teakter.video.repository.VideoRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,11 +12,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 @Service
 @Slf4j
@@ -21,18 +26,19 @@ import java.nio.file.Path;
 public class HlsTranscoderService {
 
 private final S3Client s3Client;
+private final VideoRepository videoRepository;
 
 @Value("${aws.s3.bucket-videos}")
     private String bucketName;
 
-public void processVideoToHls(String rawFilename) {
-    String baseName=rawFilename.contains(".") ? rawFilename.substring(0, rawFilename.lastIndexOf('.')) : rawFilename;
+public void processVideoToHls(String rawFilename, Long videoId) {
+    String filenameOnly= Paths.get(rawFilename).getFileName().toString();
+    String baseName=filenameOnly.contains(".") ? filenameOnly.substring(0, filenameOnly.lastIndexOf('.')) : filenameOnly;
     Path tempDir=null;
 
     try {
         tempDir=            Files.createTempDirectory("hls_proc_");
-        File localMp4=new File(tempDir.toFile(), rawFilename);
-
+        File localMp4=new File(tempDir.toFile(), filenameOnly);
 
 //descargar el archivo .mp4 desde s3
         log.info("descargando video desde S3: {}", rawFilename);
@@ -51,10 +57,14 @@ public void processVideoToHls(String rawFilename) {
         //subir los fracmentos HLS a S3
 uploadHlsFilesToS3(outputDir, baseName);
 
+updateVideoStatus(videoId, VideoStatus.READY);
 log.info("Proceso HLS terminado y cargado en S3 para: {}", rawFilename);
+log.info("status de el video modificado a ready porque ya se transcodifico a HLS");
 
     } catch (Exception e) {
-        log.error("Error durante el procesamiento a HLS de el video con ID: {}", rawFilename, e);
+        log.error("Error durante el procesamiento a HLS de el video con ID {}: {}", videoId, rawFilename, e);
+
+updateVideoStatus(videoId, VideoStatus.FAILED);
         throw new RuntimeException("Error al procesar el video a HLS", e);
     } finally {
 if (tempDir != null){
@@ -62,6 +72,14 @@ if (tempDir != null){
     deleteDirectoryRecursively(tempDir.toFile());
 }
     }
+ }
+
+ @Transactional(Transactional.TxType.REQUIRES_NEW)
+ private void updateVideoStatus(Long videoId, VideoStatus status){
+    videoRepository.findById(videoId).ifPresent(video -> {
+        video.setStatus(status);
+        videoRepository.save(video);
+    });
  }
 
  private void executeFFmpegHls(File inputVideoFile, File outputDir){
@@ -77,6 +95,7 @@ if (!outputDir.exists()){
              "-c:v", "libx264",
              "-preset", "ultrafast",
              "-crf", "28",
+             "-threads", "0",
              "-g", "150", //fuersa Keyframes cada 150 frames (para fracmentos de exactamente 5 segundos a 30fps)
              "-sc_threshold", "0", //evita que cambie de segmento en cambios de esena
              "-c:a", "aac",
@@ -90,16 +109,25 @@ if (!outputDir.exists()){
 
 pb.redirectErrorStream(true);
 
+//se comprueba si los logs estan en debug
+     if (log.isDebugEnabled()){
+         //se redirigen los logs a la salida sin necesidad de el ciclo manual que puede saturar la memoria si los logs no estan en debug como en produccion
+pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+     } else {
+         //se descartan los logs si no esta en debug
+pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+     }
+
 try {
     Process process = pb.start();
 
-try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream()))){
-    String line;
+//try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream()))){
+//    String line;
 
-    while ((line = reader.readLine()) != null){
-        log.trace("[FFmpeg] {}", line);
-    }
-    }
+//    while ((line = reader.readLine()) != null){
+
+//    }
+//    }
 
     int exitCode = process.waitFor();
 
@@ -111,14 +139,18 @@ try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getIn
 }
 }
 
-private void uploadHlsFilesToS3(File outputDir, String baseName){
+private void uploadHlsFilesToS3(File outputDir, String baseName) {
     //subir los archivos divididos de el video a la carpeta hls de AWS S3
     File[] generatedFiles = outputDir.listFiles();
     if (generatedFiles == null) return;
 
-        for (File file : generatedFiles) {
+    ExecutorService executor = Executors.newFixedThreadPool(6);
+    List<Future<?>> futures=new ArrayList<>();
+
+    for (File file : generatedFiles) {
+        Future<?> future = executor.submit(() -> {
             String s3Key = "videos/hls/" + baseName + "/" + file.getName();
-            String contentType= file.getName().endsWith(".m3u8")
+            String contentType = file.getName().endsWith(".m3u8")
                     ? "application/x-mpegURL"
                     : "video/MP2T";
 
@@ -130,7 +162,27 @@ private void uploadHlsFilesToS3(File outputDir, String baseName){
                             .build(),
                     RequestBody.fromFile(file)
             );
+        });
+        futures.add(future);
+    }
+
+    executor.shutdown();
+    try {
+        if (!executor.awaitTermination(10, TimeUnit.MINUTES)){
+            executor.shutdownNow();
         }
+
+        //validar que ninguna subida haya fayado en los hilos
+        for (Future<?> future : futures){
+            future.get();
+        }
+    } catch (InterruptedException e){
+        executor.shutdownNow();
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Proceso interrumpido mientras se subían archivos a S3");
+    } catch (ExecutionException e){
+        throw new RuntimeException("error en la subida de un fracmento HLS a S3");
+    }
 }
 
 private void deleteDirectoryRecursively(File file){

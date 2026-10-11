@@ -5,23 +5,21 @@ import com.teakter.video.repository.VideoRepository;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.http.Method;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 @ConditionalOnProperty(name = "storage.type", havingValue = "minio")
 public class MinioVideoServiceImpl extends AbstractVideoService{
 
 private final MinioClient minioClient;
-private static final Logger logger= LoggerFactory.getLogger(MinioVideoServiceImpl.class);
 
 @Value("${minio.bucket-videos}")
     private String bucketName;
@@ -37,7 +35,8 @@ private String minioUrl;
     //metodo para generar una URL firmada para subir videos a MinIO
     @Override
     public UploadUrlResponse generateUploadUrl(String filename){
-        String finalFileName=UUID.randomUUID().toString()+"-"+filename;
+        String cleanFilename=sanitizeFilename(filename);
+        String finalFileName=UUID.randomUUID().toString()+"-"+cleanFilename;
         String objectName="videos/"+finalFileName;
         try {
             //configurar la solicitud de URL firmada
@@ -59,7 +58,8 @@ private String minioUrl;
     //metodo para generar una URL firmada para subir miniaturas a MinIO
     @Override
     public UploadUrlResponse generateUploadUrlThumb(String filename){
-        String finalFileName=UUID.randomUUID().toString()+"-"+filename;
+        String cleanFilename=sanitizeFilename(filename);
+        String finalFileName=UUID.randomUUID().toString()+"-"+cleanFilename;
         String objectName="thumbnails/"+finalFileName;
         try {
             //configurar la solicitud de URL firmada
@@ -103,7 +103,7 @@ return minioUrl + "/" + bucketName + "/videos/" + filename;
 
         return url.replace("http://minio:9000", "http://localhost:8080/storage");
     }catch (Exception e){
-        logger.error("error generando URL de reproduccion minio: {}", e);
+        log.error("error generando URL de reproduccion minio: {}", e);
         return filename;
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ private final RabbitTemplate rabbitTemplate;
 @Override
 @Transactional
 public void register(RegisterRequest request){
+    System.out.println("ingresando a elmetodo de registro de el service en el microservicio auth");
     if (userRepository.findByUsername(request.getUsername()).isPresent()){
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "el usuario ya existe");
     }
@@ -48,6 +50,7 @@ public void register(RegisterRequest request){
     user.setIsVerified(false);
     userRepository.save(user);
 
+    System.out.println("usuario registrado correctamente aun sin verificacion de correo");
     //crear token de verificacion de cuenta
     String token= UUID.randomUUID().toString();
     VerificationTokenEntity verificationToken=VerificationTokenEntity.builder()
@@ -73,28 +76,37 @@ rabbitTemplate.convertAndSend(RabbitMQConfig.USER_EXCHANGE, RabbitMQConfig.USER_
 
 @Override
 public AuthResponse login(LoginRequest request){
+    System.out.println("ingresando a el metodo de login de service en el microservicio auth");
     UserEntity user=userRepository.findByUsername(request.getUsername())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "usuario o contraseña incorrectos"));
 
     //verificar si la cuenta esta verificada con el email antes de autenticar
     if (Boolean.FALSE.equals(user.getIsVerified())){
+        System.out.println("correo sin verificar");
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "debes verificar tu correo electronico para iniciar sesion");
     }
+    System.out.println("correo verificado correctamente");
+
 
 try {
     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
+    System.out.println("usuario autenticado correctamente");
     //se crean los tokens
 AuthResponse newTokens=refreshTokenService.generateTokensForUser(request.getUsername());
+    System.out.println("tokens JWT creados");
 
 //se registra el refresh token en la base de datos
 refreshTokenService.registerRefresh(newTokens.getRefreshToken(), request.getUsername());
+    System.out.println("refreshToken registrado en la base de datos");
 
 //se retornan los nuevos tokens
     return newTokens;
 }catch (BadCredentialsException e){
+    System.out.println("dentro de el catch de el metodo login, credenciales incorrectas");
     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "usuario o contraseña incorrectos");
 }catch (Exception e){
+    System.out.println("dentro de el catch de el metodo login, error interno de el servidor");
     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "error en la autenticacion");
 }
 }
@@ -102,7 +114,7 @@ refreshTokenService.registerRefresh(newTokens.getRefreshToken(), request.getUser
 @Override
 @Transactional
 public void verifyAccount(String token){
-    System.out.println("el token obtenido dando click al enlace de el correo es: \n"+ token);
+    System.out.println("ingresando a el metodo de verificacion de correo de service en el microservicio auth");
 
 VerificationTokenEntity verificationToken=verificationTokenRepository.findByToken(token)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "token invalido o inexistente"));
@@ -115,6 +127,7 @@ if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())){
 UserEntity user=verificationToken.getUser();
 user.setIsVerified(true);
 userRepository.save(user);
+    System.out.println("correo verificado correctamente");
 
 //borrar el token usado
     verificationTokenRepository.delete(verificationToken);
@@ -126,6 +139,21 @@ userRepository.save(user);
     refreshTokenRepository.deleteByUserId(userId);
 userRepository.deleteById(userId);
 System.out.println("usuario con el id "+userId+ " baneado permanentemente");
+}
+
+@Override
+    public DataJwtUser getUserById(Long userId){
+    System.out.println("dentro de el metodo para obtener los datos de el usuario autenticado en el microservicio auth");
+UserEntity user=userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "usuario no encontrado"));
+    System.out.println("usuario autenticado encontrado");
+
+return DataJwtUser.builder()
+        .username(user.getUsername())
+        .userId(user.getId())
+        .role(user.getRole())
+        .email(user.getEmail())
+        .build();
 }
 
 }

@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -56,6 +57,10 @@ void setupSecurityContext(){
     entitySaved.setVideoId(1L);
     entitySaved.setUserId(1L);
     entitySaved.setContent("contenido de prueba");
+
+    Instant now=Instant.now();
+    entitySaved.setCreatedAt(now);
+    entitySaved.setUpdatedAt(now);
 
 when(repository.save(any(CommentEntity.class))).thenReturn(entitySaved);
 

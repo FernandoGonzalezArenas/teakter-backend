@@ -134,7 +134,7 @@ services:
       rabbitmq:
         condition: service_started
     environment:
-      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:+UseG1GC
       - user_db=${user_db_env}
       - password_db=${password_db_env}
       - MINIO_ACCESS_KEY=${minio_accessKey_env}
@@ -152,7 +152,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          cpus: '4.0'
+          memory: 2g
 
   #microservicio comments
   comments-service:

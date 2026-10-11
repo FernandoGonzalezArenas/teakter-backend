@@ -5,11 +5,8 @@ import com.teakter.video.repository.VideoRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
@@ -36,7 +33,8 @@ private String cloudfrontDomainVideos;
 //metodo para obtener la URL prefirmada de AWS S3
 @Override
     public UploadUrlResponse generateUploadUrl(String filename){
-String finalFileName=UUID.randomUUID().toString() + "-" + filename;
+        String cleanFilename=sanitizeFilename(filename);
+String finalFileName=UUID.randomUUID().toString() + "-" + cleanFilename;
 String objectName="videos/" + finalFileName;
         PutObjectPresignRequest presignRequest=PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(15))
@@ -55,7 +53,8 @@ String objectName="videos/" + finalFileName;
     //metodo para obtener la URL prefirmada de AWS S3 para miniaturas
     @Override
     public UploadUrlResponse generateUploadUrlThumb(String filename){
-        String finalFileName=UUID.randomUUID().toString() + "-" + filename;
+        String cleanFilename=sanitizeFilename(filename);
+        String finalFileName=UUID.randomUUID().toString() + "-" + cleanFilename;
         String objectName="thumbnails/" + finalFileName;
         PutObjectPresignRequest presignRequest=PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(15))
@@ -73,26 +72,8 @@ String objectName="videos/" + finalFileName;
 
     @Override
 protected String getPlaybackUrl(String filename){
-/*
-        //extraemos el nombre de el objeto
-    String key="videos/"+filename;
-
-    try {
-        GetObjectPresignRequest getObjectPresignRequest=GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofHours(2))
-                .getObjectRequest(req -> req.bucket(bucketName).key(key))
-                .build();
-
-        return s3Presigner.presignGetObject(getObjectPresignRequest).url().toString();
-    }catch (Exception e){
-logger.error("error generando URL de reproduccion AWS: {}", e.getMessage());
-throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "el servicio esta temporalmente no disponible");
-    }
-*/
-
         String baseName=filename.contains(".") ? filename.substring(0, filename.lastIndexOf('.')) : filename;
         return "https://" + cloudfrontDomainVideos + "/videos/hls/" + baseName + "/master.m3u8";
 }
-
 
 }

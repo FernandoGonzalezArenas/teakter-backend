@@ -3,7 +3,7 @@ package com.teakter.video.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "videos")
@@ -34,11 +34,15 @@ private Long duration;
 
 private String thumbnailUrl;
 
+@Builder.Default
+@Enumerated(EnumType.STRING)
+private VideoStatus status = VideoStatus.PROCESSING;
+
 @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 @PrePersist
     protected void onCreate(){
-    createdAt=LocalDateTime.now();
+    createdAt=Instant.now();
 }
 }

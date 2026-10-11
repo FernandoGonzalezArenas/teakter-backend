@@ -18,7 +18,7 @@ private final HlsTranscoderService hlsTranscoderService;
 @RabbitListener(queues = RabbitMQConfig.VIDEO_PROCESS_HLS_QUEUE)
     public void handleVideoProcess(VideoProcessEvent event){
     log.info("iniciando procesamiento HLS para el video con ID: {}", event.videoId());
-        hlsTranscoderService.processVideoToHls(event.rawFilename());
+        hlsTranscoderService.processVideoToHls(event.rawFilename(), event.videoId());
         log.info("video con el ID: {} procesado exitosamente a HLS", event.videoId());
 }
 

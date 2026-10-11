@@ -65,6 +65,15 @@ private DecodedJWT verifyToken(String token){
     return verifier.verify(token);
 }
 
+public String extractClaim(String token, String nameClaim){
+    try {
+        DecodedJWT decodedJWT=verifyToken(token);
+        return decodedJWT.getClaim(nameClaim).asString();
+    } catch (JWTVerificationException e){
+        return null;
+    }
+}
+
 public long getRefreshExpirationTime(){
     return refreshExpirationTime;
 }

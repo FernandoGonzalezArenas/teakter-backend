@@ -6,8 +6,7 @@ import com.teakter.video.entity.VideoEntity;
 import com.teakter.video.repository.VideoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Slf4j
 public abstract  class AbstractVideoService implements VideoService{
 
     protected final VideoRepository videoRepository;
@@ -29,7 +29,6 @@ protected final  InteractionsService interactionsService;
 protected final SubscriptionService subscriptionService;
 protected final UserService userService;
 protected  final RabbitTemplate rabbitTemplate;
-    protected static final Logger logger= LoggerFactory.getLogger(MinioVideoServiceImpl.class);
 
     public abstract UploadUrlResponse generateUploadUrl(String filename);
 
@@ -41,18 +40,24 @@ protected  final RabbitTemplate rabbitTemplate;
 UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 Long userId=principal.userId();
 
+        //sanitisacion defenciba por si el nombre viene con espacios
+String cleanFilename=sanitizeFilename(entrada.getFilename());
+String cleanThumbnail=sanitizeFilename(entrada.getThumbnailUrl());
+
         VideoEntity video = new VideoEntity();
             video.setUserId(userId);
             video.setTitle(entrada.getTitle());
             video.setDescription(entrada.getDescription());
             video.setDuration(entrada.getDuration());
-            video.setVideoUrl(entrada.getFilename());
-            video.setThumbnailUrl(entrada.getThumbnailUrl());
+            video.setVideoUrl(cleanFilename);
+            video.setThumbnailUrl(cleanThumbnail);
             videoRepository.save(video);
+
+            log.info("video guardado en la base de datos con el status prosesing antes de HLS");
 
             VideoProcessEvent event=new VideoProcessEvent(
                     video.getId(),
-                    entrada.getFilename()
+                    cleanFilename
             );
 rabbitTemplate.convertAndSend(
         RabbitMQConfig.VIDEO_EXCHANGE,
@@ -144,6 +149,7 @@ System.out.println("la URL final de reproduccion es: "+ urlFinal);
                 .duration(video.getDuration())
                 .videoUrl(urlFinal)
                 .thumbnailUrl(thumbUrl)
+                .status(video.getStatus())
                 .createdAt(video.getCreatedAt())
                 .build();
     }
@@ -225,7 +231,7 @@ rabbitTemplate.convertAndSend(
         videoId
 );
             }
-            logger.info("se eliminaron de forma fisica / logica {} videos de el usuario baneado {}", videoIds.size(), userId);
+            log.info("se eliminaron de forma fisica / logica {} videos de el usuario baneado {}", videoIds.size(), userId);
         }
     }
 
@@ -253,7 +259,22 @@ return videos.stream().map(video -> {
 
     protected VideoDto mapToDto(VideoEntity video){
         String thumbUrl=buildFullThumbnailUrl(video.getThumbnailUrl());
-        return new VideoDto(video.getId(), video.getUserId(), video.getTitle(), video.getDescription(), video.getDuration(), video.getVideoUrl(), thumbUrl, video.getCreatedAt());
+        return new VideoDto(video.getId(), video.getUserId(), video.getTitle(), video.getDescription(), video.getDuration(), video.getVideoUrl(), thumbUrl, video.getStatus(), video.getCreatedAt());
+    }
+
+    protected String sanitizeFilename(String filename){
+        if (filename == null) return null;
+
+        //remuebe espacios multiples, tabulaciones y saltos de linea remplazandolos por "_" ademas de remover caracteres especiales
+int lastDot=filename.lastIndexOf('.');
+String name=(lastDot != -1) ? filename.substring(0, lastDot) : filename;
+String extencion=(lastDot != -1) ? filename.substring(lastDot) : "";
+
+String cleanName= name.replaceAll("\\s+", "_");
+cleanName=cleanName.replaceAll("[^a-zA-Z0-9_-]", "");
+String cleanExtencion=extencion.replaceAll("[^a-zA-Z0-9.]", "").toLowerCase();
+
+return cleanName + cleanExtencion;
     }
 
     protected abstract String buildFullVideoUrl(String filename);

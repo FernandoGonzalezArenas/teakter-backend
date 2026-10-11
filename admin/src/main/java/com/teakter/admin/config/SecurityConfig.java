@@ -1,6 +1,7 @@
 package com.teakter.admin.config;
 
 import com.teakter.admin.security.GatewayHeaderFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,13 +15,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final GatewayHeaderFilter gatewayHeaderFilter;
 
 @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
     return http
             .csrf(csrf -> csrf.disable())
-            .addFilterBefore(new GatewayHeaderFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(gatewayHeaderFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/admin/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/admin/reports/**").authenticated()

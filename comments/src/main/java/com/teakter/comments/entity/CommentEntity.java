@@ -3,7 +3,7 @@ package com.teakter.comments.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "comments")
@@ -29,20 +29,20 @@ private Long userId;
 @Column(nullable = false, length = 1200)
     private String content;
 
-@Column(nullable = false)
-    private LocalDateTime createdAt;
+@Column(nullable = false, updatable = false)
+    private Instant createdAt;
 
 @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
 @PrePersist
     protected void  onCreate(){
-createdAt=updatedAt=LocalDateTime.now();
+createdAt=updatedAt=Instant.now();
 }
 
 @PreUpdate
     protected void  onUpdate(){
-    updatedAt=LocalDateTime.now();
+    updatedAt=Instant.now();
 }
 
 }

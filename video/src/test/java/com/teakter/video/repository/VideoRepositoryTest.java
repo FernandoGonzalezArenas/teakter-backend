@@ -1,6 +1,7 @@
 package com.teakter.video.repository;
 
 import com.teakter.video.entity.VideoEntity;
+import com.teakter.video.entity.VideoStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,14 @@ public class VideoRepositoryTest {
             .description("desc")
                     .duration(48L)
             .videoUrl("url")
+                    .status(VideoStatus.READY)
             .build());
 repository.save(VideoEntity.builder().userId(2L)
         .title("advanced java")
         .description("desc")
                 .duration(74L)
         .videoUrl("url")
+                .status(VideoStatus.READY)
         .build());
 
     Page<VideoEntity> result=repository.searchByTitle("spring", PageRequest.of(0, 10));
@@ -57,6 +60,7 @@ assertTrue(result.getContent().stream()
                     .duration(37L)
             .videoUrl("u")
             .thumbnailUrl("t")
+                    .status(VideoStatus.READY)
             .build());
     VideoEntity v2=repository.save(VideoEntity.builder()
             .userId(101L)
@@ -65,6 +69,7 @@ assertTrue(result.getContent().stream()
                     .duration(48L)
             .videoUrl("u")
             .thumbnailUrl("t")
+                    .status(VideoStatus.READY)
             .build());
     VideoEntity v3=repository.save(VideoEntity.builder()
             .userId(101L)
@@ -73,6 +78,7 @@ assertTrue(result.getContent().stream()
                     .duration(58L)
             .videoUrl("u")
             .thumbnailUrl("t")
+                    .status(VideoStatus.READY)
             .build());
 
     Long lastId=v3.getId();
@@ -89,8 +95,8 @@ assertTrue(result.getContent().stream()
 @Test
     @DisplayName("debe buscar videos filtrando por una lista de ids")
     void shouldFindVideosByIdIn(){
-    VideoEntity v1=repository.save(VideoEntity.builder().userId(1L).title("V1").description("d").duration(46L).videoUrl("U1").build());
-    VideoEntity v2=repository.save(VideoEntity.builder().userId(1L).title("V2").description("d").duration(58L).videoUrl("U2").build());
+    VideoEntity v1=repository.save(VideoEntity.builder().userId(1L).title("V1").description("d").duration(46L).videoUrl("U1").status(VideoStatus.READY).build());
+    VideoEntity v2=repository.save(VideoEntity.builder().userId(1L).title("V2").description("d").duration(58L).videoUrl("U2").status(VideoStatus.READY).build());
 
     Pageable pageable=PageRequest.of(0, 2);
 
@@ -102,8 +108,8 @@ assertTrue(result.getContent().stream()
 @Test
     @DisplayName("debe obtener el feed de canales seguidos ordenados por fecha")
     void shouldFindByUserIdInOrderByCreatedAtDesc(){
-    repository.save(VideoEntity.builder().userId(10L).title("canal a").description("d").duration(48L).videoUrl("U1").build());
-    repository.save(VideoEntity.builder().userId(11L).title("canal b").description("d").duration(48L).videoUrl("U2").build());
+    repository.save(VideoEntity.builder().userId(10L).title("canal a").description("d").duration(48L).videoUrl("U1").status(VideoStatus.READY).build());
+    repository.save(VideoEntity.builder().userId(11L).title("canal b").description("d").duration(48L).videoUrl("U2").status(VideoStatus.READY).build());
 
     Pageable pageable=PageRequest.of(0, 2);
 

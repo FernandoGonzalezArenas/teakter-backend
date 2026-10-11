@@ -7,10 +7,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -31,9 +28,11 @@ private final JwtUtil jwtUtil;
 
 @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain){
+    System.out.println("ingresando a el metodo para validar el token JWT y enviar los datos de el usuario a los demas microservicios atravez de los hencabezados");
     ServerHttpRequest request= exchange.getRequest();
 String path=request.getURI().getPath();
 String method=request.getMethod().name();
+    System.out.println("Filtro ejecución | Método: " + method + " | URI: " + path + " | ");
 
 //si es options dejar pasar directamente para que el CORS responda
     if (HttpMethod.OPTIONS.equals(request.getMethod())){
@@ -52,6 +51,7 @@ String method=request.getMethod().name();
     path.contains("/swagger-ui") ||
     path.contains("/webjars") ||
     path.startsWith("/storage")){
+        System.out.println("dentro de el if de las rutas permitidas sin token en el mmicroservicio gateway");
         return chain.filter(exchange);
     }
 
@@ -70,20 +70,24 @@ String method=request.getMethod().name();
         path.equals("/videos/search")
 );
 
-//obtener el hencabezado con el token
-    String authHeader= request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-if (authHeader == null || !authHeader.startsWith("Bearer ")){
+//obtener el token
+String token=extractToken(request);
+    System.out.println("token JWT extraido correctamente: "+ token);
+
+//si no hay token pero es ruta publica se deja pasar
+    if (token == null){
 if (isPublicGet){
+    System.out.println("ingresando a el if que permite las rutas publicas en el microservicio gateway");
     return chain.filter(exchange);
 }
+        System.out.println("acceso no permitido por no ser ruta publica y no tener token en gateway");
 return unauthorizedResponse(exchange, "no hay token para el recurso protegido");
 }
 
-String token= authHeader.substring(7);
 try {
     //validar token
     if (jwtUtil.isTokenExpired(token)){
-        return unauthorizedResponse(exchange, "expired token");
+        return unauthorizedResponse(exchange, "token expirado");
     }
 String userId=jwtUtil.extractUserId(token);
 String role=jwtUtil.extractRole(token);
@@ -95,6 +99,7 @@ if (path.startsWith("/admin") && !isReportCreation && !"ROLE_ADMIN".equals(role)
 }
 
     String username=jwtUtil.extractUsername(token).orElse("unknown");
+    System.out.println("los datos de el usuario obtenidos de el token en el filtro de el gateway son: \nuserId = "+userId+"\nrole = "+role+"\nusername = "+username+"\n");
 
     //mutar la peticion para que el token siga y agregar el userId limpio
     ServerWebExchange mutatedExchange=exchange.mutate()
@@ -104,12 +109,38 @@ if (path.startsWith("/admin") && !isReportCreation && !"ROLE_ADMIN".equals(role)
             .header("X-User-Name", username)
             .build())
         .build();
+    System.out.println("datos de el usuario obtenidos de el token y agregados a la peticion | AuthenticationFilter/gateway");
 
 return chain.filter(mutatedExchange);
 }catch (JWTVerificationException e){
+    //si venia un token invalido pero la ruta es publica se deja pasar
+    if (isPublicGet){
+        return chain.filter(exchange);
+    }
+
 return unauthorizedResponse(exchange, "Invalid token");
 }
 }
+
+//metodo para extraer el token de las cookies o de la cabezera authorization
+    private String extractToken(ServerHttpRequest request){
+    //buscar en la cookie "accessToken"
+        HttpCookie cookie=request.getCookies().getFirst("accessToken");
+        if (cookie != null && !cookie.getValue().isEmpty()){
+            System.out.println("token extraido de cookie en microservicio gateway");
+            return cookie.getValue();
+        }
+
+        //buscar en el Header Authorization "Bearer <token>"
+        String authHeader= request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+if (authHeader != null && authHeader.startsWith("Bearer ")){
+    System.out.println("token extraido de el header en microservicio gateway");
+    return authHeader.substring(7);
+}
+
+        System.out.println("no hay token y no se extrae de ningun lado");
+return null;
+    }
 
 private Mono<Void> unauthorizedResponse(ServerWebExchange exchange, String message){
     ServerHttpResponse response= exchange.getResponse();

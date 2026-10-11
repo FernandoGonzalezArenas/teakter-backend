@@ -1,12 +1,10 @@
 package com.teakter.comments.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Setter
 @Getter
@@ -30,9 +28,11 @@ public class CommentsDto {
     @Schema(description = "contenido de el comentario", example = "este es mi comentario")
     private String content;
 
-    @Schema(description = "fecha de creacion de el comentario", example = "2025-07-27T12:37:46")
-    private LocalDateTime createdAt;
+    @Schema(description = "fecha de creacion de el comentario", example = "2025-07-27T12:37:46.358Z")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private Instant createdAt;
 
-    @Schema(description = "fecha de actualizacion de el comentario si se edita", example = "2026-11-21T10:52:15")
-    private LocalDateTime updatedAt;
+    @Schema(description = "fecha de actualizacion de el comentario si se edita", example = "2026-11-21T10:52:15.473Z")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private Instant updatedAt;
 }

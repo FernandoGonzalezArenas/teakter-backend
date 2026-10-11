@@ -1,9 +1,13 @@
 package com.teakter.video.dto;
 
+import com.teakter.video.entity.VideoStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -33,6 +37,8 @@ private String videoUrl;
     @Schema(description = "URL de la miniatura", example = "http://localhost:8080/bucket/thumbnails/s7ghhghjd5-thumb.jpg")
 private String thumbnailUrl;
 
+    private VideoStatus status;
+
     @Schema(description = "fecha de subida de el video", example = "2024-05-27T05:36:48")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
