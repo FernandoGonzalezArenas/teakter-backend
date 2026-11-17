@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 public class AuthenticationFilter implements GlobalFilter, Ordered {
 
 private final JwtUtil jwtUtil;
+    private static final String standarUrl="/media/api/v1";
 
 @Autowired
     public AuthenticationFilter(JwtUtil jwtUtil){
@@ -28,11 +29,9 @@ private final JwtUtil jwtUtil;
 
 @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain){
-    System.out.println("ingresando a el metodo para validar el token JWT y enviar los datos de el usuario a los demas microservicios atravez de los hencabezados");
     ServerHttpRequest request= exchange.getRequest();
 String path=request.getURI().getPath();
 String method=request.getMethod().name();
-    System.out.println("Filtro ejecución | Método: " + method + " | URI: " + path + " | ");
 
 //si es options dejar pasar directamente para que el CORS responda
     if (HttpMethod.OPTIONS.equals(request.getMethod())){
@@ -41,46 +40,46 @@ String method=request.getMethod().name();
 
 //rutas permitidas sin token
     if (
-        path.startsWith("/auth/register") ||
-            path.startsWith("/auth/login") ||
-            path.startsWith("/auth/verify") ||
-            path.startsWith("/auth/refresh") ||
-            path.startsWith("/auth/logout") ||
-            path.startsWith("/actuator") ||
+        path.startsWith(standarUrl+"/auth/register") ||
+            path.startsWith(standarUrl+"/auth/login") ||
+            path.startsWith(standarUrl+"/auth/verify") ||
+            path.startsWith(standarUrl+"/auth/refresh") ||
+            path.startsWith(standarUrl+"/auth/logout") ||
+            path.startsWith(standarUrl+"/actuator") ||
     path.contains("/v3/api-docs") ||
     path.contains("/swagger-ui") ||
     path.contains("/webjars") ||
     path.startsWith("/storage")){
-        System.out.println("dentro de el if de las rutas permitidas sin token en el mmicroservicio gateway");
         return chain.filter(exchange);
     }
 
     //definicion de rutas publicas GET
-    boolean isPublicGet=method.equals("GET") && (path.matches("/videos/interactions/\\d+") ||
-        path.matches("/comentarios/\\d+") ||
-        path.startsWith("/like/") ||
-//        path.matches("/like/\\d+/status") ||
-        path.matches("/users/\\d+") ||
-        path.startsWith("/subs/") ||
-//        path.matches("/subs/\\d+/status") ||
-        path.matches("/videos/\\d+/play") ||
-        path.matches("/videos/\\d+") ||
-        path.equals("/videos/shorts-feed") ||
-        path.equals("/videos/long-feed") ||
-        path.equals("/videos/search")
+    boolean isPublicGet=method.equals("GET") &&
+        (path.matches(standarUrl+"/videos/interactions/[a-zA-Z0-9-]+") ||
+        path.matches(standarUrl+"/comentarios/[a-zA-Z0-9-]+") ||
+        path.startsWith(standarUrl+"/like/") ||
+        path.matches(standarUrl+"/users/[a-zA-Z0-9-]+") ||
+        path.startsWith(standarUrl+"/subs/") ||
+        path.matches(standarUrl+"/videos/[a-zA-Z0-9-]+/play") ||
+        path.matches(standarUrl+"/videos/[a-zA-Z0-9-]+") ||
+        path.equals(standarUrl+"/videos/shorts-feed") ||
+        path.equals(standarUrl+"/videos/long-feed") ||
+        path.equals(standarUrl+"/videos/search")
 );
+
+    //excluír a las rutas de subida de archivos de las rutas get permitidas sin token
+    if (path.contains("/upload")){
+        isPublicGet=false;
+    }
 
 //obtener el token
 String token=extractToken(request);
-    System.out.println("token JWT extraido correctamente: "+ token);
 
 //si no hay token pero es ruta publica se deja pasar
     if (token == null){
 if (isPublicGet){
-    System.out.println("ingresando a el if que permite las rutas publicas en el microservicio gateway");
     return chain.filter(exchange);
 }
-        System.out.println("acceso no permitido por no ser ruta publica y no tener token en gateway");
 return unauthorizedResponse(exchange, "no hay token para el recurso protegido");
 }
 
@@ -92,14 +91,13 @@ try {
 String userId=jwtUtil.extractUserId(token);
 String role=jwtUtil.extractRole(token);
 
-boolean isReportCreation = method.equals("POST") && path.startsWith("/admin/reports/");
+boolean isReportCreation = method.equals("POST") && path.startsWith(standarUrl+"/admin/reports/");
 
-if (path.startsWith("/admin") && !isReportCreation && !"ROLE_ADMIN".equals(role)){
+if (path.startsWith(standarUrl+"/admin") && !isReportCreation && !"ROLE_ADMIN".equals(role)){
     return unauthorizedResponse(exchange, "acceso denegado, se requieren privilegios de administrador");
 }
 
     String username=jwtUtil.extractUsername(token).orElse("unknown");
-    System.out.println("los datos de el usuario obtenidos de el token en el filtro de el gateway son: \nuserId = "+userId+"\nrole = "+role+"\nusername = "+username+"\n");
 
     //mutar la peticion para que el token siga y agregar el userId limpio
     ServerWebExchange mutatedExchange=exchange.mutate()
@@ -109,7 +107,6 @@ if (path.startsWith("/admin") && !isReportCreation && !"ROLE_ADMIN".equals(role)
             .header("X-User-Name", username)
             .build())
         .build();
-    System.out.println("datos de el usuario obtenidos de el token y agregados a la peticion | AuthenticationFilter/gateway");
 
 return chain.filter(mutatedExchange);
 }catch (JWTVerificationException e){
@@ -127,18 +124,15 @@ return unauthorizedResponse(exchange, "Invalid token");
     //buscar en la cookie "accessToken"
         HttpCookie cookie=request.getCookies().getFirst("accessToken");
         if (cookie != null && !cookie.getValue().isEmpty()){
-            System.out.println("token extraido de cookie en microservicio gateway");
             return cookie.getValue();
         }
 
         //buscar en el Header Authorization "Bearer <token>"
         String authHeader= request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 if (authHeader != null && authHeader.startsWith("Bearer ")){
-    System.out.println("token extraido de el header en microservicio gateway");
     return authHeader.substring(7);
 }
 
-        System.out.println("no hay token y no se extrae de ningun lado");
 return null;
     }
 

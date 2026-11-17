@@ -7,10 +7,12 @@ import com.teakter.video.dto.CommentsDto;
 import com.teakter.video.dto.LikeStatus;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InteractionsService {
@@ -21,31 +23,30 @@ private final SubscriptionsClient subscriptionsClient;
 
     //metodos circuitbreaker para controlar las fayas de microservicios a los que se llama
     @CircuitBreaker(name = "comments", fallbackMethod = "fallbackForComments")
-    public List<CommentsDto> getCommentsByVideo(Long videoId, Long lastId, Integer limit){
-        return commentsClient.getCommentsByVideo(videoId, lastId, limit);
+    public List<CommentsDto> getCommentsByVideo(String publicVideoId, Long lastId, Integer limit){
+        return commentsClient.getCommentsByVideo(publicVideoId, lastId, limit);
     }
 
-    public List<CommentsDto> fallbackForComments(Long videoId, Long lastId, Integer limit, Throwable throwable){
+    public List<CommentsDto> fallbackForComments(String publicVideoId, Long lastId, Integer limit, Throwable throwable){
         return List.of(CommentsDto.builder().usernameAuthor("sistema").content("comentarios temporalmente no disponibles... ").build());
     }
 
     @CircuitBreaker(name = "comments", fallbackMethod = "fallbackCountComments")
-    public Long countCommentsInVideo(Long videoId){
-        return commentsClient.countCommentsInVideo(videoId);
+    public Long countCommentsInVideo(String publicVideoId){
+        return commentsClient.countCommentsInVideo(publicVideoId);
     }
 
-    public Long fallbackCountComments(Long videoId, Throwable throwable){
+    public Long fallbackCountComments(String publicVideoId, Throwable throwable){
         return 0L;
     }
 
     @CircuitBreaker(name = "likes", fallbackMethod = "fallbackForLikes")
-    public LikeStatus likeStatusInVideo(Long videoId){
-        return likesClient.likeStatusInVideo(videoId);
+    public LikeStatus likeStatusInVideo(String publicVideoId){
+        return likesClient.likeStatusInVideo(publicVideoId);
     }
 
-    public LikeStatus fallbackForLikes(Long videoId, Throwable throwable){
+    public LikeStatus fallbackForLikes(String publicVideoId, Throwable throwable){
         return new LikeStatus(0L, false);
     }
-
 
     }

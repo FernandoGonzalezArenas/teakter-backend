@@ -4,9 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
-@Table(name = "videos")
+@Table(name = "videos", indexes = {
+        @Index(name = "idx_video_id", columnList = "id"),
+        @Index(name = "idx_video_publicVideoId", columnList = "publicVideoId"),
+        @Index(name = "idx_video_userId", columnList = "userId")
+})
 @Setter
 @Getter
 @NoArgsConstructor
@@ -17,8 +22,11 @@ public class VideoEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+@Column(nullable = false, unique = true, updatable = false)
+private String publicVideoId = UUID.randomUUID().toString();
+
 @Column(nullable = false)
-private Long userId;
+private String userId;
 
 @Column(nullable = false)
     private String title;

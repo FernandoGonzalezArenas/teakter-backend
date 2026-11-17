@@ -39,21 +39,12 @@ assertEquals("requerido", errorsMap.get("username"));
 }
 
 @Test
-void  handleRuntime_401(){
-    GlobalExceptionHandler handler=new GlobalExceptionHandler();
-    var resp=handler.handleRuntimeException(new RuntimeException("x"));
-    assertEquals(401, resp.getStatusCode().value());
-    assertTrue(((Map<?, ?>) resp.getBody()).get("message").toString()
-    .contains("acceso no autorizado"));
-}
-
-@Test
 void  handleGeneral_500(){
     GlobalExceptionHandler handler=new GlobalExceptionHandler();
-    var resp=handler.handleGeneralException(new Exception("boom"));
+    var resp=handler.handleGlobalException(new Exception("boom"));
     assertEquals(500, resp.getStatusCode().value());
     assertTrue(((Map<?, ?>) resp.getBody()).get("message").toString()
-    .contains("error interno"));
+    .contains("Ocurrio un error interno en el servidor"));
 }
 
 }

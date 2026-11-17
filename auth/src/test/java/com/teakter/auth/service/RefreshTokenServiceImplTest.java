@@ -1,31 +1,26 @@
 package com.teakter.auth.service;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.teakter.auth.dto.AuthResponse;
 import com.teakter.auth.entity.RefreshTokenEntity;
 import com.teakter.auth.entity.UserEntity;
 import com.teakter.auth.repository.RefreshTokenRepository;
 import com.teakter.auth.security.CustomUserDetails;
 import com.teakter.auth.security.JwtUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 public class RefreshTokenServiceImplTest {
 
@@ -52,8 +47,8 @@ void generateTokensForUser_OK(){
     //el UserDetailsService devuelve detalles
     when(userDetailsService.loadUserByUsername("fernando")).thenReturn(buildDetails());
     //el JwtUtil genera los tokens
-    when(jwtUtil.generateToken("fernando", "1", "ROLE_USER", "fernando@mail.com")).thenReturn("ACC");
-    when(jwtUtil.generateRefreshToken("fernando", "1", "ROLE_USER", "fernando@mail.com")).thenReturn("REF");
+    when(jwtUtil.generateToken(eq("fernando"), anyString(), eq("ROLE_USER"), eq("fernando@mail.com"))).thenReturn("ACC");
+    when(jwtUtil.generateRefreshToken(eq("fernando"), anyString(), eq("ROLE_USER"), eq("fernando@mail.com"))).thenReturn("REF");
 
     AuthResponse r=service.generateTokensForUser("fernando");
 
@@ -193,6 +188,7 @@ UserEntity u=userEntity();
 private UserEntity userEntity(){
     return UserEntity.builder()
     .id(1L)
+            .publicUserId("skjf8uw83kjeh")
 .username("fernando")
 .password("12345678")
 .email("fernando@mail.com")

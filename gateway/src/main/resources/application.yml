@@ -1,5 +1,7 @@
 server:
   port: 8080
+  servlet:
+      context-path: /media/api/v1
 
 spring:
   application:
@@ -38,13 +40,13 @@ spring:
         - id: auth
           uri: lb://auth
           predicates:
-            - Path=/auth/**
+            - Path=/media/api/v1/auth/**
 
 #microservicio admin
         - id: admin
           uri: lb://admin
           predicates:
-            - Path=/admin/**
+            - Path=/media/api/v1/admin/**
 
 #servicio local de almacenamiento minio
         - id: minio_route
@@ -58,36 +60,36 @@ spring:
         - id: user
           uri: lb://user
           predicates:
-            - Path=/users/**
+            - Path=/media/api/v1/users/**
 
 #ruta para microservicio subscriptions
         - id: subscription
           uri: lb://subscription
           predicates:
-            - Path=/subs/**
+            - Path=/media/api/v1/subs/**
 
         #ruta para microservicio video
         - id: video
           uri: lb://video
           predicates:
-              - Path=/videos/**
+              - Path=/media/api/v1/videos/**
 
         #ruta de microservicio comments
         - id: comments
           uri: lb://comments
           predicates:
-            - Path=/comentarios/**
+            - Path=/media/api/v1/comentarios/**
         #ruta de microservicio likes
         - id: likes
           uri: lb://likes
           predicates:
-            - Path=/like/**
+            - Path=/media/api/v1/like/**
 
 #microservicio notification
         - id: notification
           uri: lb://notification
           predicates:
-            - Path=/notifications/**
+            - Path=/media/api/v1/notifications/**
 
 #seguridad JWT
 jwt:
@@ -111,3 +113,7 @@ springdoc:
         url: "/comentarios/v3/api-docs"
       - name: "Servicio de likes"
         url: "/like/v3/api-docs"
+
+logging:
+    level:
+        root: info

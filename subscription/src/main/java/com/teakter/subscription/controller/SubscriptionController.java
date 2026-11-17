@@ -31,7 +31,7 @@ public class SubscriptionController {
             @ApiResponse(responseCode = "400", description = "solicitud invalida, ID de el canal invalido o nulo")
                     })
     @PostMapping("/{channelId}/toggle")
-    public ResponseEntity<Void> toggleSubscription(@PathVariable Long channelId){
+    public ResponseEntity<Void> toggleSubscription(@PathVariable String channelId){
         boolean status=subscriptionService.toggleSubscription(channelId);
         if (status){
             return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -47,7 +47,7 @@ public class SubscriptionController {
                     @ApiResponse(responseCode = "404", description = "Id de el canal invalido o nulo")
                     })
     @GetMapping("/{channelId}/count")
-    public ResponseEntity<Long> countSubscriptors(@PathVariable Long channelId){
+    public ResponseEntity<Long> countSubscriptors(@PathVariable String channelId){
         return ResponseEntity.ok(subscriptionService.countSubscriptions(channelId));
     }
 
@@ -59,7 +59,7 @@ public class SubscriptionController {
                     @ApiResponse(responseCode = "404", description = "ID de el canal invalido o nulo")
                     })
     @GetMapping("/{channelId}/status")
-    public ResponseEntity<SubscriptionStatusDto> getChannelStatus(@PathVariable Long channelId){
+    public ResponseEntity<SubscriptionStatusDto> getChannelStatus(@PathVariable String channelId){
         return ResponseEntity.ok(subscriptionService.getChannelStatus(channelId));
     }
 
@@ -70,7 +70,7 @@ public class SubscriptionController {
                     content = @Content(schema = @Schema(implementation = IdsDto.class)))
                     })
     @GetMapping("/user-subs/{userId}")
-    public ResponseEntity<IdsDto> getSubscriptionsByUser(@PathVariable Long userId){
+    public ResponseEntity<IdsDto> getSubscriptionsByUser(@PathVariable String userId){
         return ResponseEntity.ok(subscriptionService.getSubscriptionsByUser(userId));
     }
 

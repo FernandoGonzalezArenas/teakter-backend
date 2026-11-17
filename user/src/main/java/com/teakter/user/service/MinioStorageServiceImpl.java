@@ -63,7 +63,6 @@ throw new RuntimeException("error en minio user: " +e.getMessage());
         String cleanName= name.replaceAll("\\s+", "_");
         cleanName=cleanName.replaceAll("[^a-zA-Z0-9_-]", "");
         String cleanExtencion=extencion.replaceAll("[^a-zA-Z0-9.]", "").toLowerCase();
-        System.out.println("el nombre de el archivo quedo como: "+ (cleanName + cleanExtencion));
 
         return cleanName + cleanExtencion;
     }

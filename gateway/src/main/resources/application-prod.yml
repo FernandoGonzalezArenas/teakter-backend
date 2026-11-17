@@ -1,0 +1,20 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        add-to-chain: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: ${frontend_url_env}
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allow-credentials: true
+      default-filters:
+        - name: DedupeResponseHeader
+          args:
+            name: Access-Control-Allow-Origin Access-Control-Allow-Credentials
+            strategy: RETAIN_FIRST
+
+logging:
+    level:
+        root: info

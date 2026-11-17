@@ -26,9 +26,7 @@ String userId_str=request.getHeader("X-User-Id");
     String username=request.getHeader("X-User-Name");
 String role_str=request.getHeader("X-User-Role");
 if (userId_str!=null && !userId_str.isEmpty() && username!=null && !username.isEmpty()) {
-try {
-Long userId=Long.parseLong(userId_str);
-    UserPrincipal principal=new UserPrincipal(userId, username);
+    UserPrincipal principal=new UserPrincipal(userId_str, username);
     List<SimpleGrantedAuthority> authorities=Collections.emptyList();
     if (role_str!=null && !role_str.isEmpty()){
         String finalRole=role_str.startsWith("ROLE_") ? role_str : "ROLE_"+role_str;
@@ -41,9 +39,6 @@ Long userId=Long.parseLong(userId_str);
 authorities
     );
     SecurityContextHolder.getContext().setAuthentication(auth);
-}catch (NumberFormatException e){
-logger.error("error con el formato de el X-User-Id: "+userId_str);
-}
 }
             filterChain.doFilter(request, response);
 }

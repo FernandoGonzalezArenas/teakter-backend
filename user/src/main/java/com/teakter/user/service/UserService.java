@@ -9,16 +9,16 @@ import java.util.List;
 
 public interface UserService {
 
-UserDto getProfile(Long id);
+UserDto getProfile(String id);
 
 UploadUrlResponse getUploadUrl(String filename);
 
 UserDto updateProfile(UserDtoEntrada profileDetails);
 
-UserDto createInitialProfile(Long id, String username);
+UserDto createInitialProfile(Long id, String publicUserId, String username);
 
-List<UserDto> getProfilesBatch(List<Long> userIds);
+List<UserDto> getProfilesBatch(List<String> userIds);
 
-void banUserInternal(Long userId);
+void banUserInternal(String userId);
 
 }

@@ -31,20 +31,17 @@ private String cloudfrontDomainUsers;
     String cleanFilename=sanitizeFilename(filename);
     String finalFilename= UUID.randomUUID().toString()+"-"+cleanFilename;
     String objectName="profiles/"+finalFilename;
-    System.out.println("obteniendo la URL firmada para subir la foto de perfil a AWS");
     PutObjectPresignRequest presignRequest=PutObjectPresignRequest.builder()
             .signatureDuration(Duration.ofMinutes(15))
             .putObjectRequest(req -> req.bucket(bucketName).key(objectName))
             .build();
 
     PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
-    System.out.println("retornando la URL firmada de subida y el nombre unico de la foto de perfil almacenada en AWS");
     return new UploadUrlResponse(presignedRequest.url().toString(), finalFilename);
 }
 
 @Override
     public String getPublicUrl(String filename){
-    System.out.println("retornando la URL de la foto de perfil almacenada en AWS");
     return "https://"+cloudfrontDomainUsers+"/profiles/"+filename;
 }
 
@@ -59,7 +56,6 @@ private String cloudfrontDomainUsers;
         String cleanName= name.replaceAll("\\s+", "_");
         cleanName=cleanName.replaceAll("[^a-zA-Z0-9_-]", "");
         String cleanExtencion=extencion.replaceAll("[^a-zA-Z0-9.]", "").toLowerCase();
-        System.out.println("el nombre de el archivo quedo como: "+ (cleanName + cleanExtencion));
 
         return cleanName + cleanExtencion;
     }

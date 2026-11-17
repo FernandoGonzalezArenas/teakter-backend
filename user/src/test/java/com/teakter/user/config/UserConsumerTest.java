@@ -23,13 +23,13 @@ public class UserConsumerTest {
 
 @Test
     void consumerRegistrationMessage_CallsService(){
-    UserRabbitDto userRabbitDto=new UserRabbitDto(1L, "newuser");
+    UserRabbitDto userRabbitDto=new UserRabbitDto(1L, "sjthiuhkjdbjkebv", "newuser");
 
     //ejecutamos el metodo de consumo manualmente
     userConsumer.consumeRegistrationMessage(userRabbitDto);
 
     //verificamos que el servicio fue invocado con los datos correctos
-verify(service, times(1)).createInitialProfile(1L, "newuser");
+verify(service, times(1)).createInitialProfile(1L, "sjthiuhkjdbjkebv", "newuser");
 }
 
 }

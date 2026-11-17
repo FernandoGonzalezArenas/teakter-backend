@@ -14,5 +14,7 @@ public class UserRabbitDto {
 
 private Long userId;
 
+private String publicUserId;
+
     private String username;
 }

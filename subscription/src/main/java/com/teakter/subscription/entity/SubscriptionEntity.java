@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "subscriptions", uniqueConstraints = @UniqueConstraint(columnNames = {"subscriber_id", "channel_id"}))
+@Table(name = "subscriptions", uniqueConstraints = @UniqueConstraint(columnNames = {"subscriber_id", "channel_id"}), indexes = {
+        @Index(name = "idx_subscription_id", columnList = "id"),
+        @Index(name = "idx_subscription_subscriberId", columnList = "subscriberId"),
+        @Index(name = "idx_subscription_channelId", columnList = "channelId")
+})
 @Setter
 @Getter
 @NoArgsConstructor
@@ -16,9 +20,9 @@ public class SubscriptionEntity {
     private Long id;
 
     @Column(name = "subscriber_id")
-    private Long subscriberId;
+    private String subscriberId;
 
     @Column(name = "channel_id")
-    private Long channelId;
+    private String channelId;
 
 }

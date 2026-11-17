@@ -2,14 +2,7 @@ package com.teakter.auth.entity;
 
 import java.time.Instant;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +10,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@Table(name = "refreshToken", indexes = {
+        @Index(name = "idx_refresh_id", columnList = "id"),
+        @Index(name = "idx_refresh_token", columnList = "token")
+})
 @Setter
 @Getter
 @NoArgsConstructor
@@ -27,7 +24,7 @@ public class RefreshTokenEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-@Column(nullable = false, unique = true)
+@Column(nullable = false, unique = true, length = 2048)
     private String token;
 
 @Column(nullable = false)

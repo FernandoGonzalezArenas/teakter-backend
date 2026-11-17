@@ -32,7 +32,7 @@ public class MinioStorageServiceImplTest {
 @InjectMocks
 private MinioStorageServiceImpl service;
 
-private final Long userId=55L;
+private final String userId="jmfdbfkuh5iunjrtnk";
 
 @BeforeEach
     void setup(){

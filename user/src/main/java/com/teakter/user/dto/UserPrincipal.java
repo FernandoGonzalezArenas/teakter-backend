@@ -1,4 +1,4 @@
 package com.teakter.user.dto;
 
-public record UserPrincipal(Long userId, String username) {
+public record UserPrincipal(String userId, String username) {
 }

@@ -41,7 +41,6 @@ public void processVideoToHls(String rawFilename, Long videoId) {
         File localMp4=new File(tempDir.toFile(), filenameOnly);
 
 //descargar el archivo .mp4 desde s3
-        log.info("descargando video desde S3: {}", rawFilename);
         s3Client.getObject(
                 GetObjectRequest.builder()
                         .bucket(bucketName)
@@ -58,9 +57,6 @@ public void processVideoToHls(String rawFilename, Long videoId) {
 uploadHlsFilesToS3(outputDir, baseName);
 
 updateVideoStatus(videoId, VideoStatus.READY);
-log.info("Proceso HLS terminado y cargado en S3 para: {}", rawFilename);
-log.info("status de el video modificado a ready porque ya se transcodifico a HLS");
-
     } catch (Exception e) {
         log.error("Error durante el procesamiento a HLS de el video con ID {}: {}", videoId, rawFilename, e);
 
@@ -121,14 +117,6 @@ pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
 try {
     Process process = pb.start();
 
-//try(BufferedReader reader=new BufferedReader(new InputStreamReader(process.getInputStream()))){
-//    String line;
-
-//    while ((line = reader.readLine()) != null){
-
-//    }
-//    }
-
     int exitCode = process.waitFor();
 
     if (exitCode != 0) {
@@ -181,7 +169,9 @@ private void uploadHlsFilesToS3(File outputDir, String baseName) {
         Thread.currentThread().interrupt();
         throw new RuntimeException("Proceso interrumpido mientras se subían archivos a S3");
     } catch (ExecutionException e){
-        throw new RuntimeException("error en la subida de un fracmento HLS a S3");
+        Throwable cause=e.getCause();
+        log.error("Error critico al subir fracmento HLS a S3: {}", cause != null ? cause.getMessage() : e.getMessage(), cause);
+        throw new RuntimeException("error en la subida de un fracmento HLS a S3"+ (cause != null ? cause.getMessage() : ""), cause);
     }
 }
 

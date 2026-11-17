@@ -6,10 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "admin-actions")
+@Table(name = "admin-actions", indexes = {
+        @Index(name = "idx_admin_id", columnList = "id"),
+        @Index(name = "idx_admin_adminId", columnList = "adminId"),
+        @Index(name = "idx_admin_targetId", columnList = "targetId")
+})
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,15 +24,15 @@ public class AdminEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-private Long adminId; //el id de el administrador que viene de el gateway
+private String adminId; //el id de el administrador que viene de el gateway
     private String actionType; //accion realizada como DELETE_VIDEO o BAN_USER
-    private Long targetId; //el id de el recurso afectado
+    private String targetId; //el id de el recurso afectado
     private String reason; //justificacion de la accion realizada
-    private LocalDateTime timestamp; //fecha de la accion
+    private Instant timestamp; //fecha de la accion
 
     @PrePersist
     protected void onCreate(){
-        timestamp=LocalDateTime.now();
+        timestamp=Instant.now();
     }
 
 }

@@ -2,6 +2,7 @@ package com.teakter.video.service;
 
 import com.teakter.video.dto.UploadUrlResponse;
 import com.teakter.video.repository.VideoRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,6 +14,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 import java.time.Duration;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @ConditionalOnProperty(name = "storage.type", havingValue = "aws")
 public class AWSVideoServiceImpl extends AbstractVideoService {

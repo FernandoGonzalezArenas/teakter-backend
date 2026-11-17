@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface AdminService {
 
-void moderateVideo(Long videoId, String reason);
-void moderateUser(Long userId, String reason);
-void createReport(ReportType type, Long targetId, PredefinedReason reason, String description);
+void moderateVideo(String videoId, String reason);
+void moderateUser(String userId, String reason);
+void createReport(ReportType type, String targetId, PredefinedReason reason, String description);
 List<ReportDetailDto> getPendingReports();
-void dismissReport(Long targetId, ReportType type);
+void dismissReport(String targetId, ReportType type);
 
 }

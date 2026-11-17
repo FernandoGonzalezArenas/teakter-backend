@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +39,7 @@ protected  final RabbitTemplate rabbitTemplate;
     @Override
     public VideoDto saveVideoMetadata(VideoDtoEntrada entrada){
 UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-Long userId=principal.userId();
+String userId=principal.userId();
 
         //sanitisacion defenciba por si el nombre viene con espacios
 String cleanFilename=sanitizeFilename(entrada.getFilename());
@@ -52,8 +53,6 @@ String cleanThumbnail=sanitizeFilename(entrada.getThumbnailUrl());
             video.setVideoUrl(cleanFilename);
             video.setThumbnailUrl(cleanThumbnail);
             videoRepository.save(video);
-
-            log.info("video guardado en la base de datos con el status prosesing antes de HLS");
 
             VideoProcessEvent event=new VideoProcessEvent(
                     video.getId(),
@@ -84,32 +83,36 @@ return result.map(this::mapToDto);
     }
 
     @Override
-    public List<VideoDto> getShortsFeed(Long lastId, int limit){
+    public List<VideoDto> getShortsFeed(Instant lastCreatedAt, int limit){
         PageRequest pageable=PageRequest.of(0, limit);
-        List<VideoEntity> videos= videoRepository.findNextShortVideos(lastId, pageable);
+        List<VideoEntity> videos= videoRepository.findNextShortVideos(lastCreatedAt, pageable);
         return videos.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<VideoDto> getLongsFeed(Long lastId, int limit){
+    public List<VideoDto> getLongsFeed(Instant lastCreatedAt, int limit){
         PageRequest pageable=PageRequest.of(0, limit);
-        List<VideoEntity> videos= videoRepository.findNextLongVideos(lastId, pageable);
+        List<VideoEntity> videos= videoRepository.findNextLongVideos(lastCreatedAt, pageable);
+
+        if (videos.isEmpty())log.info("no hay videos para retornar");
+
         return videos.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
-    public InteractionsDto getInteractions(Long videoId, Long lastId, Integer limit){
-         List<CommentsDto> comments=interactionsService.getCommentsByVideo(videoId, lastId, limit);
-         Long totalComments = interactionsService.countCommentsInVideo(videoId);
-            LikeStatus status=interactionsService.likeStatusInVideo(videoId);
+    public InteractionsDto getInteractions(String publicVideoId, Long lastId, Integer limit){
+
+         List<CommentsDto> comments=interactionsService.getCommentsByVideo(publicVideoId, lastId, limit);
+         Long totalComments = interactionsService.countCommentsInVideo(publicVideoId);
+            LikeStatus status=interactionsService.likeStatusInVideo(publicVideoId);
 
         return new InteractionsDto(comments, totalComments, status);
     }
 
     @Override
-    public List<VideoDto> getVideosByIds(Long userId, Long lastId, int limit){
+    public List<VideoDto> getVideosByIds(String userId, Instant lastCreatedAt, int limit){
         UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long currentUser=principal.userId();
+        String currentUser=principal.userId();
 
         if (!userId.equals(currentUser)) {
             UserDto perfil = userService.getProfile(userId);
@@ -118,10 +121,10 @@ return result.map(this::mapToDto);
             }
         }
 
-        List<Long> ids=likeService.getLikedVideos(userId);
+        List<String> ids=likeService.getLikedVideos(userId);
 
         PageRequest pageRequest=PageRequest.of(0, limit);
-        List<VideoEntity> results=videoRepository.findByIdIn(ids, lastId, pageRequest);
+        List<VideoEntity> results=videoRepository.findByIdIn(ids, lastCreatedAt, pageRequest);
 
         //convertimos la lista de entidades a lista de DTO correctamente y la retornamos
         return results.stream()
@@ -130,27 +133,26 @@ return result.map(this::mapToDto);
     }
 
     @Override
-    public VideoPlaybackDto getVideoForPlayback(Long videoId){
+    public VideoPlaybackDto getVideoForPlayback(String publicVideoId){
         //buscamos el video en la base de datos
-        VideoEntity video=videoRepository.findById(videoId)
+        VideoEntity video=videoRepository.findByPublicVideoId(publicVideoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "video no encontrado"));
 
         //generamos la URL de acceso
         String urlFinal=getPlaybackUrl(video.getVideoUrl());
 String thumbUrl=buildFullThumbnailUrl(video.getThumbnailUrl());
-System.out.println("la URL final de reproduccion es: "+ urlFinal);
 
         //retornamos el DTO
         return VideoPlaybackDto.builder()
-                .id(video.getId())
+                .id(video.getPublicVideoId())
                 .userId(video.getUserId())
                 .title(video.getTitle())
                 .description(video.getDescription())
                 .duration(video.getDuration())
                 .videoUrl(urlFinal)
                 .thumbnailUrl(thumbUrl)
-                .status(video.getStatus())
-                .createdAt(video.getCreatedAt())
+                .status(video.getStatus().name())
+                .createdAt(video.getCreatedAt() != null ? video.getCreatedAt().toString() : null)
                 .build();
     }
 
@@ -158,9 +160,9 @@ System.out.println("la URL final de reproduccion es: "+ urlFinal);
     protected abstract String getPlaybackUrl(String storedUrl);
 
     @Override
-    public List<VideoDto> getSubscriptionsFeed(Long userId, Long lastId, int limit){
+    public List<VideoDto> getSubscriptionsFeed(String userId, Instant lastCreatedAt, int limit){
         UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long currentUser=principal.userId();
+        String currentUser=principal.userId();
 
         if (!userId.equals(currentUser)) {
             UserDto perfil = userService.getProfile(userId);
@@ -169,11 +171,11 @@ System.out.println("la URL final de reproduccion es: "+ urlFinal);
             }
         }
 
-List<Long> followedIds=subscriptionService.getSubscriptionsByUser(userId);
+List<String> followedIds=subscriptionService.getSubscriptionsByUser(userId);
 if (followedIds.isEmpty()) return Collections.emptyList();
 
 PageRequest pageRequest = PageRequest.of(0, limit);
-List<VideoEntity> result=videoRepository.findByUserIdInOrderByCreatedAtDesc(followedIds, lastId, pageRequest);
+List<VideoEntity> result=videoRepository.findByUserIdInOrderByCreatedAtDesc(followedIds, lastCreatedAt, pageRequest);
 
 return result.stream()
         .map(this::mapToDto)
@@ -182,9 +184,9 @@ return result.stream()
 
     //obtener los videos subidos por un usuario especifico
     @Override
-    public List<VideoDto> getVideosByUser(Long userId, Long lastId, int limit){
+    public List<VideoDto> getVideosByUser(String userId, Instant lastCreatedAt, int limit){
         PageRequest pageRequest=PageRequest.of(0, limit);
-        List<VideoEntity> videosUsuario = videoRepository.findByUserId(userId, lastId, pageRequest);
+        List<VideoEntity> videosUsuario = videoRepository.findByUserId(userId, lastCreatedAt, pageRequest);
 
         if (videosUsuario.isEmpty()) return Collections.emptyList();
 
@@ -195,7 +197,7 @@ return result.stream()
 
 @Override
 @Transactional
-public void deleteVideoInternal(Long videoId){
+public void deleteVideoInternal(String publicVideoId){
     Authentication auth=SecurityContextHolder.getContext().getAuthentication();
 
     boolean isAdmin=auth.getAuthorities().stream()
@@ -204,39 +206,38 @@ if (!isAdmin){
     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "acceso denegado, no tienes derechos de administrador para borrar el video");
 }
 
-if (!videoRepository.existsById(videoId)){
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ocurrio un error, el video que se quiere eliminar no existe");
-}
-videoRepository.deleteById(videoId);
+VideoEntity video=videoRepository.findByPublicVideoId(publicVideoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El video que se quiere eliminar no existe"));
+
+videoRepository.deleteById(video.getId());
     }
 
     @Override
     @Transactional
-    public void processUserBannedInternal(Long userId){
+    public void processUserBannedInternal(String userId){
 //buscar los videos de el usuario
         List<VideoEntity> userVideos=videoRepository.findAllByUserId(userId);
 
         if (!userVideos.isEmpty()){
             //extraer los ids de los videos
-            List<Long> videoIds=userVideos.stream().map(VideoEntity::getId).toList();
+            List<String> videoIds=userVideos.stream().map(VideoEntity::getPublicVideoId).toList();
 
 //borrar los videos de el usuario
             videoRepository.deleteByUserId(userId);
 
             //mandar los ids de videos al exchange para borrar likes y comentarios de cada video
-            for (Long videoId : videoIds){
+            for (String videoId : videoIds){
 rabbitTemplate.convertAndSend(
         "admin.exchange",
         "video.deleted",
         videoId
 );
             }
-            log.info("se eliminaron de forma fisica / logica {} videos de el usuario baneado {}", videoIds.size(), userId);
         }
     }
 
     @Override
-    public List<VideoDto> videoInternalDetails(List<Long> ids){
+    public List<VideoDto> videoInternalDetails(List<String> ids){
 Authentication auth=SecurityContextHolder.getContext().getAuthentication();
 
 boolean isAdmin=auth.getAuthorities().stream()
@@ -245,7 +246,7 @@ if (!isAdmin){
     throw new ResponseStatusException(HttpStatus.FORBIDDEN, "acceso denegado, se requieren permisos de administrador para borrar el video");
 }
 
-        List<VideoEntity> videos=videoRepository.findAllById(ids);
+        List<VideoEntity> videos=videoRepository.findAllByPublicVideoId(ids);
 
 return videos.stream().map(video -> {
     VideoDto dto = mapToDto(video);
@@ -259,7 +260,17 @@ return videos.stream().map(video -> {
 
     protected VideoDto mapToDto(VideoEntity video){
         String thumbUrl=buildFullThumbnailUrl(video.getThumbnailUrl());
-        return new VideoDto(video.getId(), video.getUserId(), video.getTitle(), video.getDescription(), video.getDuration(), video.getVideoUrl(), thumbUrl, video.getStatus(), video.getCreatedAt());
+return VideoDto.builder()
+        .id(video.getPublicVideoId())
+        .userId(video.getUserId())
+        .title(video.getTitle())
+        .description(video.getDescription())
+        .duration(video.getDuration())
+        .videoUrl(video.getVideoUrl())
+        .thumbnailUrl(thumbUrl)
+        .status(video.getStatus().name())
+        .createdAt(video.getCreatedAt() != null ? video.getCreatedAt().toString() : null)
+        .build();
     }
 
     protected String sanitizeFilename(String filename){

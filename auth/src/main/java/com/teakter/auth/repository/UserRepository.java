@@ -10,6 +10,7 @@ package com.teakter.auth.repository;
 
     public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByUsername(String username);
+        Optional<UserEntity> findByPublicUserId(String publicUserId);
 
     //obtener los usuarios expirados para eliminarlos con el ciclo de vida de JPA
     List<UserEntity> findByIsVerifiedFalseAndCreatedAtBefore(LocalDateTime limit);

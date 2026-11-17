@@ -25,6 +25,7 @@ UserRepository repository=mock(UserRepository.class);
 //entidad falsa
 UserEntity user=UserEntity.builder()
 .id(1L)
+        .publicUserId("fshhiyukh387e")
 .username("fernando")
 .password("{noop}123")
         .role("ROLE_USER")

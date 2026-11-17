@@ -36,7 +36,7 @@ public class CommentServiceImplTest {
 @InjectMocks
     private CommentServiceImpl service;
 
-private Long userId=1L;
+private String userId="fhjsfhi734yyuergfjgfyyyerr";
 private String username="fernando";
 
 @BeforeEach
@@ -48,14 +48,14 @@ void setupSecurityContext(){
 
 @Test
     void saveComments_ShouldReturnCommentsDto_ValidImput(){
-    CommentDtoEntrada entrada=new CommentDtoEntrada(1L, "contenido de prueba");
+    CommentDtoEntrada entrada=new CommentDtoEntrada("sjdfhi7whhjeds", "contenido de prueba");
     String username="fernando";
 
     CommentEntity entitySaved=new CommentEntity();
     entitySaved.setId(1L);
     entitySaved.setUsernameAuthor(username);
-    entitySaved.setVideoId(1L);
-    entitySaved.setUserId(1L);
+    entitySaved.setVideoId("sjdfhi7whhjeds");
+    entitySaved.setUserId(userId);
     entitySaved.setContent("contenido de prueba");
 
     Instant now=Instant.now();
@@ -96,9 +96,9 @@ service.deleteComment(commentId);
 @Test
 @DisplayName("debe contar los comentarios de un video")
 void shouldCountCommentsInVideo(){
-    when(repository.countByVideoId(1L)).thenReturn(67L);
+    when(repository.countByVideoId("sjdfhi7whhjeds")).thenReturn(67L);
 
-    Long count=service.countCommentsInVideo(1L);
+    Long count=service.countCommentsInVideo("sjdfhi7whhjeds");
 
     //validacion
     assertEquals(67L, count);
@@ -107,8 +107,8 @@ void shouldCountCommentsInVideo(){
 @Test
     @DisplayName("debe borrar los comentarios de un video")
     void shouldDeleteCommentsByVideoId(){
-    assertDoesNotThrow(() -> service.deleteCommentsWithVideoId(1L));
-    verify(repository).deleteByVideoId(1L);
+    assertDoesNotThrow(() -> service.deleteCommentsWithVideoId("sjdfhi7whhjeds"));
+    verify(repository).deleteByVideoId("sjdfhi7whhjeds");
 }
 
 }

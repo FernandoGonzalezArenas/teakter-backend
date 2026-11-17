@@ -26,6 +26,7 @@ public class RefreshTokenRepositoryTest {
 void  findByToken_ok(){
     //creamos un usuario y registro en la entidad de refresh
     UserEntity u=userRepo.save(UserEntity.builder()
+                    .publicUserId("shfiuewhjkeiuegyubrjhkdhkj")
 .username("fernando")
 .password("x")
                     .role("ROLE_USER")
@@ -49,6 +50,7 @@ void  findByToken_ok(){
 @Test
 void  deleteAllByExpiryDateBefore_eliminaExpirados(){
     UserEntity u=userRepo.save(UserEntity.builder()
+                    .publicUserId("heuyeh347ehdhhgu4h44")
 .username("bob")
 .password("b")
                     .role("ROLE_USER")
@@ -79,6 +81,7 @@ void  deleteAllByExpiryDateBefore_eliminaExpirados(){
     @DisplayName("borrar los tokens de un usuario baneado")
     void shouldDeleteTokensOfBannedUser(){
     UserEntity user=userRepo.save(UserEntity.builder()
+                    .publicUserId("sfi8fy83euh734he")
             .username("fer").password("mi-password").role("USER").email("yo@email.com").build());
     Long userId=user.getId();
 

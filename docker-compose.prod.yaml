@@ -1,0 +1,304 @@
+networks:
+  teakter-network:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+
+services:
+# Consul
+  consul:
+    networks:
+      - teakter-network
+    image: hashicorp/consul:1.15
+    container_name: consul-server
+    ports:
+      - "8500:8500"
+    command: agent -dev -client=0.0.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  rabbitmq:
+    networks:
+      - teakter-network
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq-teakter
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+#      - "5672:5672"
+      - "15672:15672"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+
+  #microservicio auth
+  auth-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - JWT_SECRET=${jwt_secret_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/authdb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # microservicio video
+  video-service:
+    networks:
+      - teakter-network
+    build: 
+      context: ./video
+      dockerfile: Dockerfile
+    container_name: video-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - AWS_ACCESS_KEY=${aws_accessKey_env}
+      - AWS_SECRET_KEY=${aws_secretKey_env}
+      - AWS_CLOUDFRONT_DOMAIN_VIDEOS=${aws_cloudfront_domain_videos_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/videodb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - STORAGE_TYPE=aws
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 2g
+
+  #microservicio comments
+  comments-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./comments
+      dockerfile: Dockerfile
+    container_name: comments-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/commentdb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    deploy:
+      resources:
+        limits:
+          memory: 450m
+
+#microservicio likes
+  likes-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./likes
+      dockerfile: Dockerfile
+    container_name: likes-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/likedb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    deploy:
+      resources:
+        limits:
+          memory: 450m
+
+#microservice user
+  user-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    container_name: user-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - AWS_ACCESS_KEY=${aws_accessKey_env}
+      - AWS_SECRET_KEY=${aws_secretKey_env}
+      - AWS_CLOUDFRONT_DOMAIN_USERS=${aws_cloudfront_domain_users_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/userdb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+      - STORAGE_TYPE=aws
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+#microservicio subscription
+  subscription-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./subscription
+      dockerfile: Dockerfile
+    container_name: subscription-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/subscriptiondb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    deploy:
+      resources:
+        limits:
+          memory: 450m
+
+  #microservicio admin
+  admin-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: admin-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/admindb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+    deploy:
+      resources:
+        limits:
+          memory: 450m
+
+#microservicio notification
+  notification-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    container_name: notification-microservice
+    depends_on:
+      consul:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - user_db=${user_db_env}
+      - password_db=${password_db_env}
+      - SPRING_DATASOURCE_URL=${db_url_env}/notificationdb
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - RABBIT_HOST=rabbitmq-teakter
+      - RABBIT_USER=guest
+      - RABBIT_PASSWORD=guest
+      - MAIL_HOST=${mail_host_env:-smtp-relay-brevo.com}
+      - MAIL_PORT=${mail_port_env:-587}
+      - MAIL_USERNAME=${mail_username_env}
+      - MAIL_PASSWORD=${mail_password_env}
+      - MAIL_FROM=${mail_from_env:-fer.gonare98@gmail.com}
+      - FRONTEND_URL=${frontend_url_env:-http://localhost:3000}
+    deploy:
+      resources:
+        limits:
+          memory: 450m
+
+  #microservicio gateway
+  gateway-service:
+    networks:
+      - teakter-network
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway-microservice
+    ports:
+      - "8080:8080"
+    depends_on:
+      consul:
+        condition: service_started
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx384m -XX:+UseG1GC
+      - SPRING_PROFILES_ACTIVE=${profile_active_env}
+      - JWT_SECRET=${jwt_secret_env}
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - SPRING_CLOUD_CONSUL_PORT=8500
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+

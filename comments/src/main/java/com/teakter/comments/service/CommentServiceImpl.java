@@ -30,7 +30,7 @@ public class CommentServiceImpl implements CommentService{
 @Override
     public CommentsDto saveComments(CommentDtoEntrada comment){
     UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Long userId=principal.userId();
+    String userId=principal.userId();
     String username=principal.username();
     CommentEntity comentario=new CommentEntity();
     comentario.setVideoId(comment.getVideoId());
@@ -40,28 +40,21 @@ public class CommentServiceImpl implements CommentService{
 
     CommentEntity savedComment = commentRepository.save(comentario);
 
-    log.info("con estos datos se guardo el comentario: \nID = "+ savedComment.getId() +"\nfecha = "+ savedComment.getCreatedAt().toString() +"\ncontenido = "+ savedComment.getContent());
-
     return mapToDto(savedComment);
 }
 
 //obtener los comentarios de un video
     @Override
-    public List<CommentsDto> getCommentsByVideo(Long videoId, Long lastId, Integer limit){
-        Pageable pageable= PageRequest.of(0, limit);
+    public List<CommentsDto> getCommentsByVideo(String videoId, Long lastId, Integer limit){
+     Pageable pageable= PageRequest.of(0, limit);
         List<CommentEntity> comments= commentRepository.findNextComments(videoId, lastId, pageable);
-
-        if (!comments.isEmpty()) {
-            CommentEntity lastComment=comments.getFirst();
-            log.info("el ultimo comentario creado se retorna desde el backend con estos datos: \nID = " + lastComment.getId() + "\nfecha = " + lastComment.getCreatedAt().toString() + "\ncontenido = " + lastComment.getContent());
-        }
 
         return comments.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     //contar los comentarios de un video
-    public  Long countCommentsInVideo(Long videoId){
-    if (videoId<=0){
+    public  Long countCommentsInVideo(String videoId){
+    if (videoId==null || videoId.isBlank()){
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "videoId invalido");
     }
     return commentRepository.countByVideoId(videoId);
@@ -101,13 +94,13 @@ String username=principal.username();
 
  @Override
  @Transactional
- public void deleteCommentsWithVideoId(Long videoId){
+ public void deleteCommentsWithVideoId(String videoId){
 commentRepository.deleteByVideoId(videoId);
  }
 
  @Override
  @Transactional
- public void deleteCommentsByUserId(Long userId){
+ public void deleteCommentsByUserId(String userId){
     commentRepository.deleteByUserId(userId);
  }
 
@@ -118,8 +111,8 @@ return CommentsDto.builder()
         .userId(comment.getUserId())
         .usernameAuthor(comment.getUsernameAuthor())
         .content(comment.getContent())
-        .createdAt(comment.getCreatedAt())
-        .updatedAt(comment.getUpdatedAt()).build();
+        .createdAt(comment.getCreatedAt().toString())
+        .updatedAt(comment.getUpdatedAt().toString()).build();
  }
 
 }

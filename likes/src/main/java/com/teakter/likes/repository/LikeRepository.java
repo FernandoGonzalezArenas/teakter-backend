@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LikeRepository extends JpaRepository<LikeEntity, Long> {
-Optional<LikeEntity> findByUserIdAndVideoId(Long userId, Long videoId);
-long countByVideoId(Long videoId);
-boolean existsByUserIdAndVideoId(Long userId, Long videoId);
-List<LikeEntity> findByUserId(Long userId);
+Optional<LikeEntity> findByUserIdAndVideoId(String userId, String videoId);
+long countByVideoId(String videoId);
+boolean existsByUserIdAndVideoId(String userId, String videoId);
+List<LikeEntity> findByUserId(String userId);
 
 @Modifying
 @Query("DELETE FROM LikeEntity l WHERE l.videoId = :videoId")
-void deleteByVideoId(@Param("videoId") Long videoId);
-void deleteByUserId(Long userId);
+void deleteByVideoId(@Param("videoId") String videoId);
+void deleteByUserId(String userId);
 
 }

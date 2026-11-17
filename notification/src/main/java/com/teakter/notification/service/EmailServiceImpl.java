@@ -28,7 +28,6 @@ private final EmailLogRepository emailLogRepository;
 
     @Override
     public void sendVerificationEmail(String toEmail, String username, String token) {
-        System.out.println("datos recibidos en notification desde auth: \ncorreo del usuario: " + toEmail + "\nusername: " + username + "\ntoken: " + token + "\n");
 
         String subject = "Verifica tu cuenta en Teakter";
 
@@ -66,7 +65,6 @@ private final EmailLogRepository emailLogRepository;
             mailSender.send(message);
 
             saveLog(toEmail, subject, "VERIFICATION", EmailStatus.SENT, null);
-            log.info("correo enviado correctamente a {} y guardado para auditoría", toEmail);
         } catch (MessagingException e) {
             saveLog(toEmail, subject, "VERIFICATION", EmailStatus.FAILED, e.getMessage());
             log.error("error al enviar el correo de verificacion a {}: {}", toEmail, e.getMessage());

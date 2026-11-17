@@ -29,7 +29,7 @@ public class SubscriptionServiceImplTest {
     @InjectMocks
     private SubscriptionServiceImpl service;
 
-    private final Long userId=1L;
+    private final String userId="bfgihjlikhmflkhjfk";
 
     @BeforeEach
     void setup(){
@@ -41,11 +41,11 @@ public class SubscriptionServiceImplTest {
     @Test
     void toggleSubscription_NewSubscription_ReturnsTrue(){
         //simulamos que no existe una subscripcion previa
-        when(repository.findBySubscriberIdAndChannelId(1L, 100L))
+        when(repository.findBySubscriberIdAndChannelId("bfgihjlikhmflkhjfk", "jjitdn58erkjg"))
                 .thenReturn(Optional.empty());
 
 //ejecutamos el toggle
-        boolean result=service.toggleSubscription(100L);
+        boolean result=service.toggleSubscription("jjitdn58erkjg");
 
         //verificaciones
         assertTrue(result);
@@ -55,10 +55,10 @@ public class SubscriptionServiceImplTest {
     @Test
     void toggleSubscription_existingSubscription_DeleteAndReturnsFalse(){
         //simulamos que ya existe la subscripcion
-        SubscriptionEntity existing=new SubscriptionEntity(1L, 1L, 100L);
-        when(repository.findBySubscriberIdAndChannelId(1L, 100L)).thenReturn(Optional.of(existing));
+        SubscriptionEntity existing=new SubscriptionEntity(1L, "ndritujelkgdibueoi", "jfhginutrihflhgnrtgtlk");
+        when(repository.findBySubscriberIdAndChannelId(userId, "jfhginutrihflhgnrtgtlk")).thenReturn(Optional.of(existing));
 
-        boolean result=service.toggleSubscription(100L);
+        boolean result=service.toggleSubscription("jfhginutrihflhgnrtgtlk");
 
         //verificaciones
         assertFalse(result);
@@ -67,11 +67,11 @@ public class SubscriptionServiceImplTest {
 
     @Test
     void getChannelStatus_ShouldReturnCorrectStatus_ForAuthenticatedUser(){
-        when(repository.countByChannelId(100L)).thenReturn(15L);
-        when(repository.existsBySubscriberIdAndChannelId(1L, 100L)).thenReturn(true);
+        when(repository.countByChannelId("jfhginutrihflhgnrtgtlk")).thenReturn(15L);
+        when(repository.existsBySubscriberIdAndChannelId(userId, "jfhginutrihflhgnrtgtlk")).thenReturn(true);
 
         //llamada a el metodo
-        SubscriptionStatusDto status=service.getChannelStatus(100L);
+        SubscriptionStatusDto status=service.getChannelStatus("jfhginutrihflhgnrtgtlk");
 
         //validaciones
         assertEquals(15L, status.getTotalSubscriptions());
@@ -81,9 +81,9 @@ public class SubscriptionServiceImplTest {
     @Test
     void getChannelStatus_ShouldReturnFalse_IfGestUser(){
         SecurityContextHolder.clearContext();
-        when(repository.countByChannelId(100L)).thenReturn(15L);
+        when(repository.countByChannelId("jfhginutrihflhgnrtgtlk")).thenReturn(15L);
 
-        SubscriptionStatusDto status=service.getChannelStatus(100L);
+        SubscriptionStatusDto status=service.getChannelStatus("jfhginutrihflhgnrtgtlk");
 
         //validaciones
         assertEquals(15L, status.getTotalSubscriptions());
@@ -92,15 +92,15 @@ public class SubscriptionServiceImplTest {
 
     @Test
     void shouldReturnThrows_WhenChannelIdIsInvalid(){
-        assertThrows(ResponseStatusException.class, () -> service.countSubscriptions(0L));
+        assertThrows(ResponseStatusException.class, () -> service.countSubscriptions(""));
     }
 
     @Test
     @DisplayName("debe borrar las subscripciones y subscriptores de un usuario")
     void shouldDeleteSubscriptionsOfUser(){
-assertDoesNotThrow(() -> service.deleteSubscriptionsOfUser(1L));
-verify(repository).deleteSubscriptionsByChannelId(1L);
-verify(repository).deleteSubscriptorsOfChannelId(1L);
+assertDoesNotThrow(() -> service.deleteSubscriptionsOfUser("jfhginutrihflhgnrtgtlk"));
+verify(repository).deleteSubscriptionsByChannelId("jfhginutrihflhgnrtgtlk");
+verify(repository).deleteSubscriptorsOfChannelId("jfhginutrihflhgnrtgtlk");
     }
 
 }

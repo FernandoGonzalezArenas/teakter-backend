@@ -22,8 +22,8 @@ private String usernameAuthor;
 private String content;
 
     @Schema(description = "fecha de creacion de el comentario", example = "2026-04-04T11:04:37")
-private LocalDateTime createdAt;
+private String createdAt;
 
     @Schema(description = "fecha de actualizacion de el comentario si se edita", example = "2026-05-16T12:36:25")
-private LocalDateTime updatedAt;
+private String updatedAt;
 }

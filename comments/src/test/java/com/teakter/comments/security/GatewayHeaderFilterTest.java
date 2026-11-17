@@ -49,7 +49,7 @@ public class GatewayHeaderFilterTest {
         assertNotNull(auth);
 
         UserPrincipal principal=(UserPrincipal) auth.getPrincipal();
-        assertEquals(123L, principal.userId());
+        assertEquals("123", principal.userId());
         assertEquals("fernando", principal.username());
         assertTrue(auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));

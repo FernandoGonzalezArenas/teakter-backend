@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${user_db}
+    password: ${password_db}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+#configuracion de Mail (ejemplo con Brebo / SMTP genérico)
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+#propiedades personalizadas
+app:
+  frontend_url: ${FRONTEND_URL}
+  mail:
+    from: ${MAIL_FROM}
+
+logging:
+  level:
+    root: info

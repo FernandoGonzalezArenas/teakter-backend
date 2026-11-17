@@ -37,7 +37,7 @@ private final AdminService adminService;
                     })
 @DeleteMapping("/videos/{videoId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteVideo(@PathVariable Long videoId, @RequestBody AuditorDto datos){
+    public ResponseEntity<String> deleteVideo(@PathVariable String videoId, @RequestBody AuditorDto datos){
     adminService.moderateVideo(videoId, datos.getReason());
     return ResponseEntity.ok("video eliminado por administracion");
 }
@@ -50,7 +50,7 @@ private final AdminService adminService;
                     })
 @DeleteMapping("/users/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> banUser(@PathVariable Long userId, @RequestBody AuditorDto datos){
+    public ResponseEntity<String> banUser(@PathVariable String userId, @RequestBody AuditorDto datos){
     adminService.moderateUser(userId, datos.getReason());
     return ResponseEntity.ok("usuario baneado por administracion");
 }
@@ -61,7 +61,7 @@ private final AdminService adminService;
             @ApiResponse(responseCode = "200", description = "reporte creado exitosamente")
                     })
 @PostMapping("/reports/{type}/{targetId}")
-    public ResponseEntity<String> createReport(@PathVariable ReportType type,  @PathVariable Long targetId, @RequestBody ReportCreateDto datos){
+    public ResponseEntity<String> createReport(@PathVariable ReportType type,  @PathVariable String targetId, @RequestBody ReportCreateDto datos){
         try {
             PredefinedReason reason = PredefinedReason.valueOf(datos.getReason().toUpperCase());
             adminService.createReport(type, targetId, reason, datos.getDescription());
@@ -91,7 +91,7 @@ private final AdminService adminService;
                     })
 @PatchMapping("/reports/{targetId}/dismiss")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> dismiss(@PathVariable Long targetId, @RequestParam("type") ReportType type){
+    public ResponseEntity<String> dismiss(@PathVariable String targetId, @RequestParam("type") ReportType type){
     adminService.dismissReport(targetId, type);
     return ResponseEntity.ok("reporte descartado por el administrador");
 }

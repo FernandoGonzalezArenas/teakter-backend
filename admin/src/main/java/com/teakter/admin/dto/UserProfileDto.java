@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 public class UserProfileDto {
 
     @Schema(description = "ID unico de el usuario", example = "76")
-    private Long id;
+    private String id;
 
     @Schema(description = "nombre unico de usuario", example = "fernando_dev")
 private String username;
@@ -27,6 +28,6 @@ private String bio;
 private String profilePictureUrl;
 
     @Schema(description = "fecha de creacion de el perfil", example = "2024-04-17T09                                                                            :                                                                               23:46")
-private LocalDateTime createdAt;
+private String createdAt;
 
 }

@@ -149,6 +149,9 @@ services:
       - RABBIT_HOST=rabbitmq-teakter
       - RABBIT_USER=guest
       - RABBIT_PASSWORD=guest
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     deploy:
       resources:
         limits:

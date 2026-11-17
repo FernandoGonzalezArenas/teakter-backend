@@ -7,6 +7,7 @@ import com.teakter.subscription.entity.SubscriptionEntity;
 import com.teakter.subscription.repository.SubscriptionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionServiceImpl implements SubscriptionService {
@@ -24,15 +26,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     @Transactional
-    public boolean toggleSubscription(Long channelId){
-        System.out.println("entrando en el metodo toggle del backend con el ChannelId = "+ channelId);
-        if (channelId<=0){
+    public boolean toggleSubscription(String channelId){
+        if (channelId==null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "problema con el ID de el canal");
         }
 
         UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long subscriberId=principal.userId();
-System.out.println("el ID de el usuario actual dentro de el metodo toggle es = " + subscriberId);
+        String subscriberId=principal.userId();
 
         Optional<SubscriptionEntity> existingSubscription=subscriptionRepository.findBySubscriberIdAndChannelId(subscriberId, channelId);
         if (existingSubscription.isPresent()){
@@ -53,8 +53,8 @@ System.out.println("el ID de el usuario actual dentro de el metodo toggle es = "
     }
 
     @Override
-    public boolean hasUserSubscription(Long channelId){
-        if (channelId<=0){
+    public boolean hasUserSubscription(String channelId){
+        if (channelId==null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "problema con el ID de el canal");
         }
 var auth=SecurityContextHolder.getContext().getAuthentication();
@@ -63,23 +63,21 @@ var auth=SecurityContextHolder.getContext().getAuthentication();
             return false;
         }
         UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-        Long subscriberId = principal.userId();
+        String subscriberId = principal.userId();
 
         return subscriptionRepository.existsBySubscriberIdAndChannelId(subscriberId, channelId);
     }
 
     @Override
-    public Long countSubscriptions(Long channelId){
-        if (channelId<=0){
+    public Long countSubscriptions(String channelId){
+        if (channelId==null || channelId.isBlank()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "problema con el ID de el canal");
         }
         return subscriptionRepository.countByChannelId(channelId);
     }
 
     @Override
-    public SubscriptionStatusDto getChannelStatus(Long channelId){
-        System.out.println("entrando en el metodo status de subscription en el backend con el ChannelId = " + channelId);
-
+    public SubscriptionStatusDto getChannelStatus(String channelId){
         boolean statusSubscription=hasUserSubscription(channelId);
         Long totalSubs=countSubscriptions(channelId);
 
@@ -90,10 +88,10 @@ var auth=SecurityContextHolder.getContext().getAuthentication();
     }
 
     @Override
-    public IdsDto getSubscriptionsByUser(Long userId){
+    public IdsDto getSubscriptionsByUser(String userId){
 
         //se obtiene la lista de los canales a los que sigue el usuario
-        List<Long> ressult=subscriptionRepository.findBySubscriberId(userId);
+        List<String> ressult=subscriptionRepository.findBySubscriberId(userId);
 
         //retornamos los ids en el DTO
         return new IdsDto(ressult);
@@ -101,8 +99,9 @@ var auth=SecurityContextHolder.getContext().getAuthentication();
 
     @Override
     @Transactional
-    public void deleteSubscriptionsOfUser(Long userId){
+    public void deleteSubscriptionsOfUser(String userId){
 subscriptionRepository.deleteSubscriptorsOfChannelId(userId);
+
 subscriptionRepository.deleteSubscriptionsByChannelId(userId);
     }
 

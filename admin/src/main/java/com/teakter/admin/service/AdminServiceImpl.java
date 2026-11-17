@@ -39,10 +39,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     @CircuitBreaker(name = "video", fallbackMethod = "fallbackModerateVideo")
-    public void moderateVideo(Long videoId, String reason){
+    public void moderateVideo(String videoId, String reason){
 //obtener el id de el administrador guardado en el contexto desde el gateway
         UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long adminId=principal.userId();
+        String adminId=principal.userId();
 
         //borrar el video fisicamente de forma sincrona con feignClient
         videoClient.deleteVideoInternal(videoId);
@@ -67,16 +67,16 @@ public class AdminServiceImpl implements AdminService {
         reportRepository.saveAll(activeReports);
     }
 
-    public void fallbackModerateVideo(Long videoId, String reason, Throwable throwable){
+    public void fallbackModerateVideo(String videoId, String reason, Throwable throwable){
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "el servicio de video no esta disponible, no se pudo borrar el video");
     }
 
     @Override
     @Transactional
     @CircuitBreaker(name = "user", fallbackMethod = "fallbackModerateUser")
-    public void moderateUser(Long userId, String reason){
+    public void moderateUser(String userId, String reason){
         UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long adminId=principal.userId();
+        String adminId=principal.userId();
 
         userClient.banUserInternal(userId);
 
@@ -97,14 +97,14 @@ public class AdminServiceImpl implements AdminService {
         reportRepository.saveAll(activeReports);
     }
 
-    public void fallbackModerateUser(Long userId, String reason, Throwable throwable){
+    public void fallbackModerateUser(String userId, String reason, Throwable throwable){
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "el servicio user no esta disponible, no se pudo banear la cuenta");
     }
 
     @Override
-    public void createReport(ReportType type, Long targetId, PredefinedReason reason, String description){
+    public void createReport(ReportType type, String targetId, PredefinedReason reason, String description){
         UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long reporterId=principal.userId();
+        String reporterId=principal.userId();
 
         ReportEntity report=ReportEntity.builder()
                 .type(type)
@@ -127,16 +127,16 @@ public class AdminServiceImpl implements AdminService {
                 .collect(Collectors.groupingBy(r -> r.getTargetId() + "-" + r.getType().name()));
 
         //limpiar los ID's de recursos reportados repetidos para consultar su informacion en los microservicios
-        List<Long> videoIds= rawReports.stream()
+        List<String> videoIds= rawReports.stream()
                 .filter(r -> r.getType() == ReportType.VIDEO)
                 .map(ReportEntity::getTargetId).distinct().toList();
 
-        List<Long> userIds=rawReports.stream()
+        List<String> userIds=rawReports.stream()
                 .filter(r -> r.getType() == ReportType.USER)
                 .map(ReportEntity::getTargetId).distinct().toList();
 
         //pedir la informacion a los microservicios
-        Map<Long, VideoMetadataDto> videoMap= Collections.emptyMap();
+        Map<String, VideoMetadataDto> videoMap= Collections.emptyMap();
         if (!videoIds.isEmpty()){
             try {
                 videoMap = videoClient.getVideoDetails(videoIds).stream()
@@ -146,7 +146,7 @@ log.error("error al obtener la informacion de los videos: ", e);
             }
         }
 
-        Map<Long, UserProfileDto> userMap=Collections.emptyMap();
+        Map<String, UserProfileDto> userMap=Collections.emptyMap();
         if (!userIds.isEmpty()){
             try {
                 userMap = userClient.getProfileDetails(userIds).stream()
@@ -157,14 +157,14 @@ log.error("error al obtener la informacion de los usuarios: ", e);
         }
 
         //declarar como final a los mapas para que java sepa que no se van a modificar
-        final Map<Long, VideoMetadataDto> finalVideoMap= videoMap;
-        final Map<Long, UserProfileDto> finalUserMap= userMap;
+        final Map<String, VideoMetadataDto> finalVideoMap= videoMap;
+        final Map<String, UserProfileDto> finalUserMap= userMap;
 
         //mapear cada objeto a un ReportDetailDto
         return groupedByTarget.entrySet().stream().map(entry -> {
             List<ReportEntity> reports=entry.getValue();
             ReportEntity sample=reports.get(0);
-            Long targetId= sample.getTargetId();
+            String targetId= sample.getTargetId();
 
             //calcular repeticion de razones concretas
             Map<String, Long> reasonCount = reports.stream()
@@ -176,7 +176,7 @@ log.error("error al obtener la informacion de los usuarios: ", e);
                             r.getId(),
                             r.getReason().name(),
                             r.getReportDescription() != null ? r.getReportDescription() : "",
-                            r.getCreatedAt()
+                            r.getCreatedAt() != null ? r.getCreatedAt().toString() : null
                     )).toList();
 
 
@@ -197,7 +197,8 @@ dto.setVideoDescription(v.getDescription());
 dto.setVideoDuration(v.getDuration());
 dto.setVideoUrl(v.getVideoUrl());
 dto.setThumbnailUrl(v.getThumbnailUrl());
-dto.setVideoCreatedAt(v.getCreatedAt());
+dto.setVideoStatus(v.getVideoStatus());
+dto.setVideoCreatedAt(v.getCreatedAt() != null ? v.getCreatedAt().toString() : null);
 }else if (sample.getType()==ReportType.USER && finalUserMap.containsKey(targetId)){
 UserProfileDto u=finalUserMap.get(targetId);
 dto.setTargetUsername(u.getUsername());
@@ -213,7 +214,7 @@ dto.setProfilePictureUrl(u.getProfilePictureUrl());
     }
 
     //descartar un reporte si no hay nada malo
-    public void dismissReport(Long targetId, ReportType type){
+    public void dismissReport(String targetId, ReportType type){
         List<ReportEntity> reports=reportRepository.findByTargetIdAndTypeAndStatus(targetId, type, ReportStatus.PENDING);
 
         if (reports.isEmpty()){

@@ -50,10 +50,8 @@ public class AWSConfig {
     if (!isTest) {
         try {
             s3.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
-            //            setPublicReadOnlyPolicy(s3, "profiles/*");
         } catch (NoSuchBucketException e) {
             s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-//            setPublicReadOnlyPolicy(s3, "profiles/*");
         }
     }
 return s3;
@@ -67,22 +65,5 @@ return s3;
                         AwsBasicCredentials.create(accessKey, secretKey)
                 )).build();
     }
-
-    /*
-    private void setPublicReadOnlyPolicy(S3Client client, String prefix) throws Exception{
-        String policy = "{\n" +
-                "  \"Version\": \"2012-10-17\",\n" +
-                "  \"Statement\": [\n" +
-                "    {\n" +
-                "      \"Effect\": \"Allow\",\n" +
-                "      \"Principal\": \"*\",\n" +
-                "      \"Action\": \"s3:GetObject\",\n" +
-                "      \"Resource\": \"arn:aws:s3:::" + bucketName + "/" + prefix + "\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}";
-        client.putBucketPolicy(PutBucketPolicyRequest.builder().bucket(bucketName).policy(policy).build());
-    }
-*/
 
 }

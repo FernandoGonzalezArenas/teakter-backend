@@ -17,6 +17,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -40,38 +41,42 @@ private StorageService storageService;
     void getProfile_UserExists_ReturnsUserDto(){
     UserEntity user=UserEntity.builder()
             .id(1L)
+            .publicUserId("fskjtjo84hke")
             .username("testuser")
             .profilePictureUrl("portada.jpg")
             .privacyLikes(true)
             .privacySubs(false)
+            .createdAt(Instant.now())
             .build();
-when(repository.findById(1L)).thenReturn(Optional.of(user));
+    String publicUserId=user.getPublicUserId();
+
+when(repository.findByPublicUserId(publicUserId)).thenReturn(Optional.of(user));
 when(storageService.getPublicUrl(anyString())).thenReturn("http://localhost:9000/bucket-users/profiles/portada.jpg");
 
-    UserDto result=service.getProfile(1L);
+    UserDto result=service.getProfile(publicUserId);
 
     //verificaciones
     assertEquals("testuser", result.getUsername());
     assertTrue(result.getProfilePictureUrl().contains("/profiles"));
-    verify(repository, times(1)).findById(1L);
+    verify(repository, times(1)).findByPublicUserId(publicUserId);
 }
 
 @Test
     void getProfile_UserNotFound_ThrowsException(){
     //simulamos que el usuario no existe en la db
-    when(repository.findById(1L)).thenReturn(Optional.empty());
+    when(repository.findByPublicUserId("fskjjer8ehje")).thenReturn(Optional.empty());
 
     //verificar que lanza la esepcion esperada
-    assertThrows(ResponseStatusException.class, () -> service.getProfile(1L));
+    assertThrows(ResponseStatusException.class, () -> service.getProfile("fskjjer8ehje"));
 }
 
 @Test
 @DisplayName("debe retornar 404 si el usuario no existe")
     void shouldThrouNotFound_WhenUserDoesNotExist(){
-    UserPrincipal principal=new UserPrincipal(1L, "user");
+    UserPrincipal principal=new UserPrincipal("fskrjh8herhis", "user");
     var auth=new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
     SecurityContextHolder.getContext().setAuthentication(auth);
-    when(repository.findById(anyLong())).thenReturn(Optional.empty());
+    when(repository.findByPublicUserId(anyString())).thenReturn(Optional.empty());
 
     assertThrows(ResponseStatusException.class, () -> {
         service.updateProfile(new UserDtoEntrada("my description", "profile picture", false, true));
@@ -81,42 +86,45 @@ when(storageService.getPublicUrl(anyString())).thenReturn("http://localhost:9000
 @Test
     @DisplayName("ADMIN: debe borrar a el usuario si tiene permisos de administrador")
     void banUserInternal_ShouldDElete_WhenRequestIsUserAdmin(){
-    Long idBanUser=1L;
-    UserPrincipal principal=new UserPrincipal(10L, "userAdmin");
+    UserPrincipal principal=new UserPrincipal("fsdht8p35ktiehk", "userAdmin");
     var auth=new UsernamePasswordAuthenticationToken(principal,
             null,
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    when(repository.existsById(idBanUser)).thenReturn(true);
+    UserEntity user=UserEntity.builder()
+                    .id(1L).publicUserId("fksjjti8ehkjedhk").build();
+    String idBanUser=user.getPublicUserId();
+
+    when(repository.findByPublicUserId(idBanUser)).thenReturn(Optional.of(user));
 
     assertDoesNotThrow(() -> service.banUserInternal(idBanUser));
-    verify(repository).deleteById(idBanUser);
+    verify(repository).deleteById(user.getId());
 }
 
 @Test
     @DisplayName("ADMIN: retorna 403 si se quiere banear al usuario y no se es administrador")
     void banUserInternal_ShouldThrowForbidden_WhenUserNotIsAdmin(){
-    UserPrincipal principal=new UserPrincipal(10L, "user");
+    UserPrincipal principal=new UserPrincipal("fshrh873herwj", "user");
     var auth=new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    ResponseStatusException ex=assertThrows(ResponseStatusException.class, () -> service.banUserInternal(1L));
+    ResponseStatusException ex=assertThrows(ResponseStatusException.class, () -> service.banUserInternal("jje84kjengu"));
     assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
 }
 
 @Test
     @DisplayName("debe responder 404 si la cuenta que se quiere eliminar no existe")
     void banUserInternal_ShouldThrowNotFound_WhenUserDoesNotExist(){
-    UserPrincipal principal=new UserPrincipal(10L, "userAdmin");
+    UserPrincipal principal=new UserPrincipal("fdsjdr873hkerjbrj", "userAdmin");
     var auth=new UsernamePasswordAuthenticationToken(principal,
             null,
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    when(repository.existsById(99L)).thenReturn(false);
+    when(repository.findByPublicUserId("hert874hknre")).thenReturn(Optional.empty());
 
-    ResponseStatusException ex=assertThrows(ResponseStatusException.class, () -> service.banUserInternal(99L));
+    ResponseStatusException ex=assertThrows(ResponseStatusException.class, () -> service.banUserInternal("hert874hknre"));
     assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
 }
 

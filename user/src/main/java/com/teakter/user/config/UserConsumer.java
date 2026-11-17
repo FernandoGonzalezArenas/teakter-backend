@@ -18,12 +18,12 @@ private final UserService userService;
 
 @RabbitListener(queues = "user.profile.create.queue")
     public void consumeRegistrationMessage(UserRabbitDto message){
-    log.info("mensaje resibido desde rabbitMQ: {}, {}", message.getUserId(), message.getUsername());
     Long id=message.getUserId();
+    String publicUsserId=message.getPublicUserId();
     String username=message.getUsername();
 
     //llamamos a el metodo para crear el perfil
-    userService.createInitialProfile(id, username);
+    userService.createInitialProfile(id, publicUsserId, username);
 }
 
 }

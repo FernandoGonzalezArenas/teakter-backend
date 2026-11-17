@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", indexes = {
+        @Index(name = "idx_notification_id", columnList = "id"),
+        @Index(name = "idx_notification_userId", columnList = "userId")
+})
 @Setter
 @Getter
 @AllArgsConstructor
@@ -20,7 +24,7 @@ public class NotificationEntity {
     private Long id;
 
 @Column(nullable = false)
-    private Long userId; //id de el usuario que resibe la notificacion
+    private String userId; //id de el usuario que resibe la notificacion
 
     @Column(nullable = false)
     private String title;
@@ -40,5 +44,5 @@ private String targetUrl; //para redirigir al hacer click
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

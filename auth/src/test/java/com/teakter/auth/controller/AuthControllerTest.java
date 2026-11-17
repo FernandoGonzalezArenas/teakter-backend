@@ -52,7 +52,7 @@ private UserDetailsService userDetailsService;
 @MockBean
 private CookieUtil cookieUtil;
 
-private Long userId = 1L;
+private String userId = "suyf7ehje";
 
 @BeforeEach
 void  setup(){

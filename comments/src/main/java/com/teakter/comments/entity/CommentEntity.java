@@ -6,7 +6,11 @@ import lombok.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_id", columnList = "id"),
+        @Index(name = "idx_comments_videoId", columnList = "videoId"),
+        @Index(name = "idx_comments_userId", columnList = "userId")
+})
 @Setter
 @Getter
 @NoArgsConstructor
@@ -18,10 +22,10 @@ public class CommentEntity {
     private Long id;
 
 @Column(nullable = false)
-    private Long videoId;
+    private String videoId;
 
 @Column(nullable = false)
-private Long userId;
+private String userId;
 
 @Column(nullable = false)
     private String usernameAuthor;

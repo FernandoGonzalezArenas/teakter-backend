@@ -7,7 +7,7 @@ import com.teakter.likes.entity.LikeEntity;
 import com.teakter.likes.repository.LikeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService{
@@ -27,11 +28,11 @@ private final LikeRepository likeRepository;
 //agregar o eliminar like de el video
     @Override
     @Transactional
-public boolean toggleLike(Long videoId){
+public boolean toggleLike(String videoId){
 UserPrincipal principal= (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-Long userId= principal.userId();
+String userId= principal.userId();
 
-        if (videoId<=0){
+        if (videoId==null || videoId.isBlank()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "videoId invalido o nulo");
         }
 
@@ -55,46 +56,42 @@ Long userId= principal.userId();
 }
 
 @Override
-public Boolean hasUserLiked(Long videoId){
-    if (videoId<=0){
+public Boolean hasUserLiked(String videoId){
+    if (videoId==null || videoId.isBlank()){
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "videoId invalido o nulo");
     }
 var auth=SecurityContextHolder.getContext().getAuthentication();
     if (auth==null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")){
-        System.out.println("la solicitud cayo en usuario anonimo sin token");
         return false;
     }
 UserPrincipal principal=(UserPrincipal) auth.getPrincipal();
-Long userId= principal.userId();
-System.out.println("si se encontro token y userId en la solicitud es = "+ userId);
+String userId= principal.userId();
     return likeRepository.existsByUserIdAndVideoId(userId, videoId);
 }
 
 //cuenta los likes de el video
 @Override
-public  long countLikes(Long videoId){
-    if (videoId<=0){
+public  long countLikes(String videoId){
+    if (videoId==null || videoId.isBlank()){
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "videoId invalido o nulo");
     }
     return likeRepository.countByVideoId(videoId);
 }
 
 @Override
-    public VideoLikeStatusDto getVideoLikeStatus(Long videoId){
+    public VideoLikeStatusDto getVideoLikeStatus(String videoId){
     Long total=countLikes(videoId);
     boolean liked=hasUserLiked(videoId);
-    System.out.println("el total de likes es "+ total + " y el estado es "+ liked);
     return new VideoLikeStatusDto(total, liked);
 }
 
 @Override
-    public IdsDto getLikesVideosByUserId(Long userId){
-
-    //se obtienen los videos a los que el usuario dio like
+    public IdsDto getLikesVideosByUserId(String userId){
+        //se obtienen los videos a los que el usuario dio like
     List<LikeEntity> result=likeRepository.findByUserId(userId);
 
 //se crea una lista con los videoId de la lista de entidades obtenida previamente
-    List<Long> videoIds=result.stream()
+    List<String> videoIds=result.stream()
             .map(LikeEntity::getVideoId)
             .collect(Collectors.toList());
 
@@ -104,13 +101,13 @@ public  long countLikes(Long videoId){
 
 @Override
     @Transactional
-    public void deleteLikesVideo(Long videoId){
-likeRepository.deleteByVideoId(videoId);
+    public void deleteLikesVideo(String videoId){
+        likeRepository.deleteByVideoId(videoId);
 }
 
 @Override
     @Transactional
-    public void deleteLikesByUserId(Long userId){
+    public void deleteLikesByUserId(String userId){
         likeRepository.deleteByUserId(userId);
 }
 

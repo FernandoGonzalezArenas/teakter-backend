@@ -6,12 +6,12 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "likes")
+@FeignClient(name = "likes", path = "/media/api/v1")
 public interface LikesClient {
 
-    @GetMapping("/like/{videoId}/status")
-    LikeStatus likeStatusInVideo(@PathVariable("videoId") Long videoId);
+    @GetMapping("/like/{publicVideoId}/status")
+    LikeStatus likeStatusInVideo(@PathVariable("publicVideoId") String publicVideoId);
 
     @GetMapping("/like/user-likes/{userId}")
-    IdsDto likedVideos(@PathVariable("userId") Long userId);
+    IdsDto likedVideos(@PathVariable("userId") String userId);
 }

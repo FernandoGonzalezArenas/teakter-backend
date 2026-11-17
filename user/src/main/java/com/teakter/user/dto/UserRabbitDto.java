@@ -12,5 +12,6 @@ import lombok.Setter;
 public class UserRabbitDto {
 
 private Long userId;
+private String publicUserId;
 private String username;
 }

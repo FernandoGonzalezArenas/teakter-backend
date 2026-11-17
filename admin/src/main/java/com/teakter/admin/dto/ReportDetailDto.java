@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class ReportDetailDto {
 private ReportType type;
 
     @Schema(description = "ID de el recurso reportado (video o usuario)", example = "23")
-    private Long targetId;
+    private String targetId;
 
     private int totalReports;
 
@@ -31,7 +32,7 @@ private ReportType type;
     private List<IndividualReportDto> reportDescriptions;
 
     @Schema(description = "ID de el usuario que subio el video", example = "24")
-    private Long videoUserId;
+    private String videoUserId;
 
     @Schema(description = "titulo de el video si el reportado es un video", example = "mi video")
     private String videoTitle;
@@ -48,8 +49,10 @@ private String videoUrl;
     @Schema(description = "URL de la miniatura de el video reportado", example = "http://minio:9000/bucket/thumbnails/ahduiyehjshfuue-thumb.jpg")
 private String thumbnailUrl;
 
+    private String videoStatus;
+
     @Schema(description = "fecha de subida de el video", example = "2024-05-27T05:36:48")
-    private LocalDateTime videoCreatedAt;
+    private String videoCreatedAt;
 
     @Schema(description = "nombre de usuario si la reportada es una cuenta de usuario", example = "fernando_dev")
 private String targetUsername;
@@ -72,7 +75,7 @@ private String status;
         private String description;
 
         @Schema(description = "fecha de creacion de el reporte", example = "2024-05-27T11:14:07")
-        private LocalDateTime createdAt;
+        private String createdAt;
 
     }
 

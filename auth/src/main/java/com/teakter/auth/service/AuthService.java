@@ -11,10 +11,10 @@ public interface AuthService {
 
     public AuthResponse login(LoginRequest request);
 
-    void banUser(Long userId);
+    void banUser(String userId);
 
     void verifyAccount(String token);
 
-    DataJwtUser getUserById(Long userId);
+    DataJwtUser getUserById(String userId);
 
 }

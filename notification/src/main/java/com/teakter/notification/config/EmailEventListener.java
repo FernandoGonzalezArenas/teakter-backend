@@ -16,7 +16,6 @@ private final EmailService emailService;
 
 @RabbitListener(queues = RabbitMQConfig.EMAIL_VERIFY_QUEUE)
     public void handleEmailVerificationEvent(EmailVerificationRabbitDto event){
-    log.info("evento de verificacion de email resivido para: {}", event.getEmail());
     emailService.sendVerificationEmail(
             event.getEmail(),
             event.getUsername(),

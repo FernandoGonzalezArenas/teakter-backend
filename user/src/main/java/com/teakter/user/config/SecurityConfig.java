@@ -27,6 +27,7 @@ public class SecurityConfig {
             .addFilterBefore(gatewayHeaderFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/users/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/users/upload-ppu").authenticated()
                     .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
                     .requestMatchers("/actuator/**").permitAll()
                     .anyRequest().authenticated())

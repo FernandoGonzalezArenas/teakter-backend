@@ -10,16 +10,16 @@ public interface CommentService {
 
      CommentsDto saveComments(CommentDtoEntrada comment);
 
-     List<CommentsDto> getCommentsByVideo(Long videoId, Long lastId, Integer limit);
+     List<CommentsDto> getCommentsByVideo(String videoId, Long lastId, Integer limit);
 
-     Long countCommentsInVideo(Long videoId);
+     Long countCommentsInVideo(String videoId);
 
      void  deleteComment(Long id);
 
      CommentsDto editComment(Long id, UpdateCommentDto content);
 
-     void deleteCommentsWithVideoId(Long videoId);
+     void deleteCommentsWithVideoId(String videoId);
 
-     void deleteCommentsByUserId(Long userId);
+     void deleteCommentsByUserId(String userId);
 
 }

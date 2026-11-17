@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class UserDto {
 
     @Schema(description = "ID unico de el usuario", example = "76")
-    private Long id;
+    private String id;
 
     @Schema(description = "nombre unico de usuario", example = "fernando_dev")
     private String username;
@@ -31,6 +31,6 @@ public class UserDto {
     private  Boolean privacySubs;
 
     @Schema(description = "fecha de creacion de el perfil", example = "2026-05-18T08:36:57")
-    private LocalDateTime createdAt;
+    private String createdAt;
 
 }

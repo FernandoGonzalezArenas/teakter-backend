@@ -23,6 +23,7 @@ public class UserRepositoryTest {
 void  findByUsername_devuelveUsuario(){
     //guardamos entidad
     UserEntity u=UserEntity.builder()
+            .publicUserId("sjkjfi8ehuihriuud")
     .username("fernando")
     .password("{noop}123")
             .role("ROLE_USER")
@@ -47,7 +48,7 @@ void  findByUsername_vacio(){
     @DisplayName("debe borrar la cuenta de el usuario de la base de datos")
     void shouldDeleteUser(){
     UserEntity user=repo.save(UserEntity.builder()
-            .username("fer").password("mi-contraseña").role("USER").email("yo@email.com").build());
+            .publicUserId("skjo8uiuh4eiehheu").username("fer").password("mi-contraseña").role("USER").email("yo@email.com").build());
     Long id=user.getId();
 
     repo.deleteById(id);

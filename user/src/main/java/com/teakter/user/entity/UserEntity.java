@@ -1,14 +1,16 @@
 package com.teakter.user.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(name = "profiles")
+@Table(name = "profiles", indexes = {
+        @Index(name = "idx_profile_id", columnList = "id")
+})
 @Setter
         @Getter
         @NoArgsConstructor
@@ -17,6 +19,11 @@ import java.time.LocalDateTime;
 public class UserEntity {
 @Id
     private Long id;
+
+@Builder.Default
+@Column(nullable = false, unique = true, updatable = false)
+private String publicUserId= UUID.randomUUID().toString();
+
 private String username;
 private String bio;
 
@@ -26,6 +33,6 @@ private Boolean privacyLikes=false;
     @Builder.Default
     private  Boolean privacySubs=false;
 private String profilePictureUrl;
-private LocalDateTime createdAt;
+private Instant createdAt;
 
 }

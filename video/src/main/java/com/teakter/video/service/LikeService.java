@@ -15,11 +15,11 @@ public class LikeService {
 private final LikesClient likesClient;
 
 @CircuitBreaker(name = "likes", fallbackMethod = "fallbackForLikedVideos")
-    public List<Long> getLikedVideos(Long userId){
+    public List<String> getLikedVideos(String userId){
     return likesClient.likedVideos(userId).getIds();
 }
 
-public List<Long> fallbackForLikedVideos(Long userId, Throwable throwable){
+public List<String> fallbackForLikedVideos(String userId, Throwable throwable){
     return Collections.emptyList();
 }
 

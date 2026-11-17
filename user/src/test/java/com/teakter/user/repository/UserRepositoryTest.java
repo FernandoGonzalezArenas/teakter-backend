@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -21,7 +20,7 @@ public class UserRepositoryTest {
     @DisplayName("debe borrar un usuario fisicamente de la base de datos")
     void shouldDeleteUserFromDatabase(){
     UserEntity user=userRepository.save(UserEntity.builder()
-            .id(1L).username("fernando").bio("biografía").profilePictureUrl("prof").privacyLikes(true).privacySubs(false).build());
+            .id(1L).publicUserId("jadfhi84hjjvjher47i").username("fernando").bio("biografía").profilePictureUrl("prof").privacyLikes(true).privacySubs(false).build());
     Long id=user.getId();
 
     userRepository.deleteById(id);

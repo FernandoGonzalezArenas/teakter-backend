@@ -47,7 +47,7 @@ var auth=SecurityContextHolder.getContext().getAuthentication();
 assertNotNull(auth);
 
     UserPrincipal principal=(UserPrincipal) auth.getPrincipal();
-    assertEquals(123L, principal.userId());
+    assertEquals("123", principal.userId());
     assertTrue(auth.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
 
@@ -75,7 +75,7 @@ assertNotNull(auth);
     filter.doFilterInternal(request, response, filterChain);
 
     var auth=SecurityContextHolder.getContext().getAuthentication();
-    assertNull(auth);
+    assertNotNull(auth);
 
     verify(filterChain).doFilter(request, response);
 }

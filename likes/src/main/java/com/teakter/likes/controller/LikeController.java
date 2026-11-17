@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +30,7 @@ private final LikeService likeService;
                     @ApiResponse(responseCode = "400", description = "solicitud invalida, videoId nulo o invalido")
                     })
 @PostMapping("/{videoId}/toggle")
-    public ResponseEntity<Void> toggleLike(@PathVariable Long videoId){
+    public ResponseEntity<Void> toggleLike(@PathVariable String videoId){
     boolean creado=likeService.toggleLike(videoId);
     if (creado){
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -47,7 +46,7 @@ private final LikeService likeService;
                     @ApiResponse(responseCode = "404", description = "el video solicitado no existe")
                     })
 @GetMapping("/{videoId}/count")
-    public ResponseEntity<Long> countLikes(@PathVariable Long videoId){
+    public ResponseEntity<Long> countLikes(@PathVariable String videoId){
     return ResponseEntity.ok(likeService.countLikes(videoId));
 }
 
@@ -59,7 +58,7 @@ private final LikeService likeService;
                     @ApiResponse(responseCode = "404", description = "el video solicitado no existe")
                     })
 @GetMapping("/{videoId}/status")
-    public ResponseEntity<VideoLikeStatusDto> getLikeStatus(@PathVariable Long videoId){
+    public ResponseEntity<VideoLikeStatusDto> getLikeStatus(@PathVariable String videoId){
     return ResponseEntity.ok(likeService.getVideoLikeStatus(videoId));
 }
 
@@ -70,7 +69,7 @@ private final LikeService likeService;
                     content = @Content(schema = @Schema(implementation = IdsDto.class)))
                     })
 @GetMapping("/user-likes/{userId}")
-    public ResponseEntity<IdsDto> getLikesVideosByUserId(@PathVariable Long userId){
+    public ResponseEntity<IdsDto> getLikesVideosByUserId(@PathVariable String userId){
     IdsDto videoIds=likeService.getLikesVideosByUserId(userId);
   return ResponseEntity.ok(videoIds);
 }

@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "video")
+@FeignClient(name = "video", path = "/media/api/v1")
 public interface VideoClient {
 
 @DeleteMapping("/videos/internal/{id}")
-    void deleteVideoInternal(@PathVariable("id") Long id);
+    void deleteVideoInternal(@PathVariable("id") String id);
 
 @GetMapping("/videos/internal/details")
-List<VideoMetadataDto> getVideoDetails(@RequestParam("ids") List<Long> videoIds);
+List<VideoMetadataDto> getVideoDetails(@RequestParam("ids") List<String> videoIds);
 
 }

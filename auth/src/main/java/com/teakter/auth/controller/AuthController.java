@@ -40,7 +40,6 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request){
-        System.out.println("ingresando a el endpoint de registro en el microservicio auth");
         authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("usuario creado correctamente");
     }
@@ -55,7 +54,6 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        System.out.println("ingresando a el endpoint de login en el microservicio auth");
         AuthResponse response=authService.login(request);
 
         ResponseCookie accessCookie= cookieUtil.createAccessTokenCookie(response.getAccessToken());
@@ -78,7 +76,6 @@ public class AuthController {
     })
     @PostMapping("/verify")
     public ResponseEntity<String> verifyAccount(@RequestParam("token") String token){
-        System.out.println("ingresando a el endpoint de verificar correo en el microservicio auth");
         authService.verifyAccount(token);
         return ResponseEntity.ok("cuenta verificada correctamente, ya puedes iniciar sesion");
     }
@@ -134,14 +131,11 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication){
-        System.out.println("ingresando a el endpoint de datos de el usuario (/me) en el microservicio auth");
         if (authentication == null || !(authentication.getPrincipal() instanceof UserPrincipal principal)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        System.out.println("se encontró un usuario autenticado");
 
         DataJwtUser jwtUser=authService.getUserById(principal.userId());
-        System.out.println("se retornan los datos de el usuario autenticado");
 
         return ResponseEntity.ok(jwtUser);
     }

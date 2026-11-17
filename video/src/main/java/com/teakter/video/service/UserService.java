@@ -13,12 +13,12 @@ public class UserService {
 private final UserClient userClient;
 
 @CircuitBreaker(name = "user", fallbackMethod = "fallbackForProfile")
-    public UserDto getProfile(Long userId){
+    public UserDto getProfile(String userId){
     return userClient.getProfile(userId);
 }
 
-public  UserDto fallbackForProfile(Long userId, Throwable throwable){
-    return UserDto.builder().id(0L).username("sistema").bio("usuario no disponible").build();
+public  UserDto fallbackForProfile(String userId, Throwable throwable){
+    return UserDto.builder().id("").username("sistema").bio("usuario no disponible").build();
 }
 
 }

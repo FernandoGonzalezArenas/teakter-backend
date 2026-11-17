@@ -1,7 +1,6 @@
 package com.teakter.notification.controller;
 
 import com.teakter.notification.dto.NotificationDto;
-import com.teakter.notification.entity.NotificationEntity;
 import com.teakter.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

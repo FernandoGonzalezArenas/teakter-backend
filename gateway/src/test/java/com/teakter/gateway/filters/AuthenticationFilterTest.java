@@ -41,7 +41,7 @@ lenient().when(filterChain.filter(any())).thenReturn(Mono.empty());
 @DisplayName("debe permitir rutas de auth sin autenticacion")
     void shouldAllowAuthRoutes(){
     MockServerWebExchange exchange=MockServerWebExchange
-        .from(MockServerHttpRequest.post("/auth/login").build());
+        .from(MockServerHttpRequest.post("/media/api/v1/auth/login").build());
     filter.filter(exchange, filterChain).block();
 
     //verificamos que se llamo a el siguiente filtro en la cadena
@@ -52,7 +52,7 @@ lenient().when(filterChain.filter(any())).thenReturn(Mono.empty());
     @DisplayName("debe permitir get publico sin token (status de like)")
     void shouldAllowPublicGetWithoutToken(){
     MockServerWebExchange exchange=MockServerWebExchange
-        .from(MockServerHttpRequest.get("/like/1/status").build());
+        .from(MockServerHttpRequest.get("/media/api/v1/like/1/status").build());
 
     filter.filter(exchange, filterChain).block();
 
@@ -63,7 +63,7 @@ lenient().when(filterChain.filter(any())).thenReturn(Mono.empty());
     @DisplayName("debe denegar recurso protegido si no hay token")
 void shouldDenyProtectedResourceWithoutToken(){
 MockServerWebExchange exchange=MockServerWebExchange
-    .from(MockServerHttpRequest.post("/comentarios").build());
+    .from(MockServerHttpRequest.post("/media/api/v1/comentarios").build());
 filter.filter(exchange, filterChain).block();
 
 //verificacion de error de no autorizacion
@@ -75,12 +75,12 @@ filter.filter(exchange, filterChain).block();
     void shouldMutateRequestWhenTokenIsValid(){
     String token="valid-token";
     MockServerWebExchange exchange=MockServerWebExchange
-        .from(MockServerHttpRequest.post("/comentarios")
+        .from(MockServerHttpRequest.post("/media/api/v1/comentarios")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " +token)
             .build());
 
 when(jwtUtil.isTokenExpired(token)).thenReturn(false);
-when(jwtUtil.extractUserId(token)).thenReturn("55");
+when(jwtUtil.extractUserId(token)).thenReturn("fshhdiuehjkd");
 
 filter.filter(exchange, filterChain).block();
 
@@ -88,7 +88,7 @@ filter.filter(exchange, filterChain).block();
 ArgumentCaptor<ServerWebExchange> captor=ArgumentCaptor.forClass(ServerWebExchange.class);
 verify(filterChain).filter(captor.capture());
 String headerId=captor.getValue().getRequest().getHeaders().getFirst("X-User-Id");
-assertEquals("55", headerId);
+assertEquals("fshhdiuehjkd", headerId);
 }
 
 @Test
@@ -96,11 +96,12 @@ assertEquals("55", headerId);
     void shouldReturn401IfTokenIsMalformed(){
     String token="token-basura";
     MockServerWebExchange exchange=MockServerWebExchange
-        .from(MockServerHttpRequest.get("/videos/upload-url")
+        .from(MockServerHttpRequest.get("/media/api/v1/videos/upload-url")
             .header(HttpHeaders.AUTHORIZATION, "Bearer "+ token)
             .build());
 
-    when(jwtUtil.isTokenExpired(token)).thenThrow(new JWTVerificationException("error"));
+    when(jwtUtil.isTokenExpired(token)).thenReturn(false);
+    when(jwtUtil.extractUserId(token)).thenThrow(new JWTVerificationException("error"));
     filter.filter(exchange, filterChain).block();
 
     assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());

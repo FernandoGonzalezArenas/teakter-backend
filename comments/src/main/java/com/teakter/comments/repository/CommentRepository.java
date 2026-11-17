@@ -10,15 +10,15 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
-    List<CommentEntity> findByVideoId(Long videoId);
-    Long countByVideoId(Long videoId);
+    List<CommentEntity> findByVideoId(String publicVideoId);
+    Long countByVideoId(String publicVideoId);
     List<CommentEntity> findByUsernameAuthor(String usernameAuthor);
-@Query("SELECT c FROM CommentEntity c WHERE c.videoId = :videoId AND (:lastId IS NULL OR c.id < :lastId) ORDER BY c.id DESC")
-    List<CommentEntity> findNextComments(Long videoId, Long lastId, Pageable pageable);
+@Query("SELECT c FROM CommentEntity c WHERE c.videoId = :publicVideoId AND (:lastId IS NULL OR c.id < :lastId) ORDER BY c.id DESC")
+    List<CommentEntity> findNextComments(String publicVideoId, Long lastId, Pageable pageable);
 
 @Modifying
-@Query("DELETE FROM CommentEntity c WHERE c.videoId = :videoId")
-void deleteByVideoId(@Param("videoId") Long videoId);
-void deleteByUserId(Long userId);
+@Query("DELETE FROM CommentEntity c WHERE c.videoId = :publicVideoId")
+void deleteByVideoId(@Param("publicVideoId") String publicVideoId);
+void deleteByUserId(String userId);
 
 }

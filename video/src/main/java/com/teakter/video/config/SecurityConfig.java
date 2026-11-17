@@ -35,6 +35,7 @@ http
                 .requestMatchers(HttpMethod.GET, "/videos/*/play").permitAll()
                 .requestMatchers(HttpMethod.GET, "/videos/*").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/videos/upload-url", "/videos/upload-tu").authenticated()
                 .anyRequest().authenticated())
         .addFilterBefore(gatewayHeaderFilter, UsernamePasswordAuthenticationFilter.class);
 return http.build();

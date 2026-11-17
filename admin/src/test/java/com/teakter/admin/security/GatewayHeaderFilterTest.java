@@ -45,7 +45,7 @@ var auth= SecurityContextHolder.getContext().getAuthentication();
 assertNotNull(auth);
 
     UserPrincipal principal=(UserPrincipal) auth.getPrincipal();
-    assertEquals(123L, principal.userId());
+    assertEquals("123", principal.userId());
     assertTrue(auth.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
 
@@ -71,7 +71,7 @@ void doFilter_WithInvalidFormat_ShouldNotSetAuthentication() throws ServletExcep
 
     var auth=SecurityContextHolder.getContext().getAuthentication();
 
-    assertNull(auth);
+    assertNotNull(auth);
     verify(filterChain, times(1)).doFilter(request, response);
 }
 

@@ -31,18 +31,18 @@ public class LikeControllerTest {
 @Test
     @WithMockUser
     void toggleLike_ShouldReturnCreated_WhenTrue() throws Exception{
-    when(service.toggleLike(eq(1L))).thenReturn(true);
+    when(service.toggleLike(eq("gksjdjo834uter8"))).thenReturn(true);
 
-    mockMvc.perform(post("/like/1/toggle").with(csrf()))
+    mockMvc.perform(post("/like/gksjdjo834uter8/toggle").with(csrf()))
             .andExpect(status().isCreated());
 }
 
 @Test
     @WithMockUser
     void toggleLike_ShouldReturnNoContent_WhenFalse() throws Exception{
-    when(service.toggleLike(eq(1L))).thenReturn(false);
+    when(service.toggleLike(eq("gksjdjo834uter8"))).thenReturn(false);
 
-    mockMvc.perform(post("/like/1/toggle").with(csrf()))
+    mockMvc.perform(post("/like/gsdjto8eujlkdk/toggle").with(csrf()))
             .andExpect(status().isNoContent());
 }
 
@@ -50,25 +50,25 @@ public class LikeControllerTest {
 @WithMockUser
     void getLikeStatus_ShouldReturnOkWithJson() throws Exception{
     VideoLikeStatusDto status=new VideoLikeStatusDto(10L, true);
-    when(service.getVideoLikeStatus(eq(1L))).thenReturn(status);
+    when(service.getVideoLikeStatus(eq("gksjdjo834uter8"))).thenReturn(status);
 
-    mockMvc.perform(get("/like/1/status"))
+    mockMvc.perform(get("/like/gksjdjo834uter8/status"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.totalLikes").value(10))
+            .andExpect(jsonPath("$.totalLikes").value(10L))
             .andExpect(jsonPath("$.isLikedByUser").value(true));
 }
 
 @Test
     @WithMockUser
     void getLikesVideosByUserId_ShouldReturnOk() throws Exception{
-    IdsDto ids=new IdsDto(List.of(10L, 20L));
-    when(service.getLikesVideosByUserId(1L)).thenReturn(ids);
+    IdsDto ids=new IdsDto(List.of("gksjdjo834uter8", "gksjdjo834utjite4d"));
+    when(service.getLikesVideosByUserId("fskdjrr84ehkdhkj")).thenReturn(ids);
 
-mockMvc.perform(get("/like/user-likes/1"))
+mockMvc.perform(get("/like/user-likes/fskdjrr84ehkdhkj"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.ids").isArray())
-        .andExpect(jsonPath("$.ids[0]").value(10))
-        .andExpect(jsonPath("$.ids[1]").value(20));
+        .andExpect(jsonPath("$.ids[0]").value("gksjdjo834uter8"))
+        .andExpect(jsonPath("$.ids[1]").value("gksjdjo834utjite4d"));
 }
 
 }

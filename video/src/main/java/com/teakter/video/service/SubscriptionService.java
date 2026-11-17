@@ -15,11 +15,11 @@ public class SubscriptionService {
     private final SubscriptionsClient subscriptionsClient;
 
     @CircuitBreaker(name = "subscription", fallbackMethod = "fallbackForSubscription")
-    public List<Long> getSubscriptionsByUser(Long userId) {
+    public List<String> getSubscriptionsByUser(String userId) {
         return subscriptionsClient.getSubscriptionsByUser(userId).getIds();
     }
 
-    public List<Long> fallbackForSubscription(Long userId, Throwable throwable) {
+    public List<String> fallbackForSubscription(String userId, Throwable throwable) {
         return Collections.emptyList();
     }
 

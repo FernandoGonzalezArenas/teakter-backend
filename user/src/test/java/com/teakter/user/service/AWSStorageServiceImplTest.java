@@ -38,7 +38,7 @@ public class AWSStorageServiceImplTest {
 
 @InjectMocks
     private AWSStorageServiceImpl service;
-private final Long userId=1L;
+private final String userId="hdkfut8455kjgr";
 
 @BeforeEach
     void setup(){

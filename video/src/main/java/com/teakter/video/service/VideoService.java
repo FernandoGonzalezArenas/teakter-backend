@@ -3,6 +3,7 @@ package com.teakter.video.service;
 import com.teakter.video.dto.*;
 import org.springframework.data.domain.Page;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface VideoService {
@@ -15,24 +16,24 @@ public interface VideoService {
 
 Page<VideoDto> searchVideosByTitle(String keyword, String type, int page, int size);
 
-List<VideoDto> getShortsFeed(Long lastId, int limit);
+List<VideoDto> getShortsFeed(Instant lastCreatedAt, int limit);
 
-    List<VideoDto> getLongsFeed(Long lastId, int limit);
+    List<VideoDto> getLongsFeed(Instant lastCreatedAt, int limit);
 
- InteractionsDto getInteractions(Long videoId, Long lastId, Integer limit);
+ InteractionsDto getInteractions(String publicVideoId, Long lastId, Integer limit);
 
- List<VideoDto> getVideosByIds(Long userId, Long lastId, int limit);
+ List<VideoDto> getVideosByIds(String userId, Instant lastCreatedAt, int limit);
 
- VideoPlaybackDto getVideoForPlayback(Long videoId);
+ VideoPlaybackDto getVideoForPlayback(String publicVideoId);
 
- List<VideoDto> getSubscriptionsFeed(Long userId, Long lastId, int limit);
+ List<VideoDto> getSubscriptionsFeed(String userId, Instant lastCreatedAt, int limit);
 
- List<VideoDto> getVideosByUser(Long userId, Long lastId, int limit);
+ List<VideoDto> getVideosByUser(String userId, Instant lastCreatedAt, int limit);
 
- void deleteVideoInternal(Long videoId);
+ void deleteVideoInternal(String publicVideoId);
 
-List<VideoDto> videoInternalDetails(List<Long> ids);
+List<VideoDto> videoInternalDetails(List<String> ids);
 
-void processUserBannedInternal(Long userId);
+void processUserBannedInternal(String userId);
 
 }

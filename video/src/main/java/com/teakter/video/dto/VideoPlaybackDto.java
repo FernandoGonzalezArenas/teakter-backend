@@ -15,12 +15,11 @@ import java.time.Instant;
 @Builder
 public class VideoPlaybackDto {
 
-
     @Schema(description = "identificador de el video seleccionado", example = "26")
-private Long id;
+private String id;
 
     @Schema(description = "ID de el usuario que subio el video", example = "24")
-    private Long userId;
+    private String userId;
 
     @Schema(description = "titulo de el video seleccionado", example = "mi video")
 private String title;
@@ -37,8 +36,8 @@ private String videoUrl;
     @Schema(description = "URL de la miniatura", example = "http://localhost:8080/bucket/thumbnails/s7ghhghjd5-thumb.jpg")
 private String thumbnailUrl;
 
-    private VideoStatus status;
+    private String status;
 
     @Schema(description = "fecha de subida de el video", example = "2024-05-27T05:36:48")
-    private Instant createdAt;
+    private String createdAt;
 }

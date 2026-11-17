@@ -45,8 +45,8 @@ String role=userDetails.getAuthorities().stream()
         .map(GrantedAuthority::getAuthority)
         .findFirst().orElse("ROLE_USER");
 
-    String access= jwtUtil.generateToken(userDetails.getUsername(), userDetails.getUserId(), role, userDetails.getEmail());
-    String refresh=jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUserId(), role, userDetails.getEmail());
+    String access= jwtUtil.generateToken(userDetails.getUsername(), userDetails.getPublicUserId(), role, userDetails.getEmail());
+    String refresh=jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getPublicUserId(), role, userDetails.getEmail());
     return new AuthResponse(access, refresh);
 }
 

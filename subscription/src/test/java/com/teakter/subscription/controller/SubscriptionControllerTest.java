@@ -10,7 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,16 +31,16 @@ public class SubscriptionControllerTest {
     @Test
     @WithMockUser
     void toggleSubscription_endpoint_ReturnsCreated() throws Exception{
-        when(service.toggleSubscription(anyLong())).thenReturn(true);
-        mockMvc.perform(post("/subs/100/toggle"))
+        when(service.toggleSubscription(anyString())).thenReturn(true);
+        mockMvc.perform(post("/subs/siuykgjenrgne/toggle"))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @WithMockUser
     void toggleSubscription_endpoint_ReturnsNoContent() throws Exception{
-        when(service.toggleSubscription(anyLong())).thenReturn(false);
-        mockMvc.perform(post("/subs/100/toggle"))
+        when(service.toggleSubscription(anyString())).thenReturn(false);
+        mockMvc.perform(post("/subs/sjdfnoierntker/toggle"))
                 .andExpect(status().isNoContent());
     }
 
@@ -48,9 +48,9 @@ public class SubscriptionControllerTest {
     @WithMockUser
     void getChannelStatus_ShouldReturnOkWithJSON() throws Exception{
         SubscriptionStatusDto status=new SubscriptionStatusDto(10L, true);
-        when(service.getChannelStatus(100L)).thenReturn(status);
+        when(service.getChannelStatus("jfhginutrihflhgnrtgtlk")).thenReturn(status);
 
-        mockMvc.perform(get("/subs/100/status"))
+        mockMvc.perform(get("/subs/jfhginutrihflhgnrtgtlk/status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalSubscriptions").value(10L))
                 .andExpect(jsonPath("$.subscriptionByUser").value(true));

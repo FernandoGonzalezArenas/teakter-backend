@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -15,6 +16,7 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 @Configuration
@@ -42,16 +44,19 @@ public class AWSConfig {
             .region(Region.of(region))
             .credentialsProvider(StaticCredentialsProvider.create(
                     AwsBasicCredentials.create(accessKey, secretKey)))
+            .httpClientBuilder(ApacheHttpClient.builder()
+                    .maxConnections(100)
+                    .connectionTimeout(Duration.ofSeconds(10)) //tiempo maximo para conectar
+                    .socketTimeout(Duration.ofSeconds(30)) //tiempo maximo de inactividad
+                    .connectionMaxIdleTime(Duration.ofSeconds(60))) //evita que las conecciones se queden colgadas o con DNS viejo expirado
             .build();
 
     boolean isTest= Arrays.asList(env.getActiveProfiles()).contains("test");
     if (!isTest) {
         try {
             s3.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
-//            setPublicReadOnlyPolicy(s3, "thumbnails/*");
         } catch (NoSuchBucketException e) {
             s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-//            setPublicReadOnlyPolicy(s3, "thumbnails/*");
         }
     }
     return s3;
@@ -65,22 +70,5 @@ public class AWSConfig {
                         AwsBasicCredentials.create(accessKey, secretKey)
                 )).build();
     }
-
-    /*
-    private void setPublicReadOnlyPolicy(S3Client client, String prefix) throws Exception{
-        String policy = "{\n" +
-                "  \"Version\": \"2012-10-17\",\n" +
-                "  \"Statement\": [\n" +
-                "    {\n" +
-                "      \"Effect\": \"Allow\",\n" +
-                "      \"Principal\": \"*\",\n" +
-                "      \"Action\": \"s3:GetObject\",\n" +
-                "      \"Resource\": \"arn:aws:s3:::" + bucketName + "/" + prefix + "\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}";
-client.putBucketPolicy(PutBucketPolicyRequest.builder().bucket(bucketName).policy(policy).build());
-    }
-*/
 
 }

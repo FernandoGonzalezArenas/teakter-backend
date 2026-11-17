@@ -21,9 +21,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,16 +45,17 @@ public class AdminServiceImplTest {
 @InjectMocks
     private AdminServiceImpl adminService;
 
+private final String userId="gjdhgukbjkrjkvhgreu";
 @BeforeEach
     void setup(){
-    UserPrincipal principal=new UserPrincipal(1L, "adminUser");
+    UserPrincipal principal=new UserPrincipal(userId, "adminUser");
     var auth=new UsernamePasswordAuthenticationToken(principal, null, null);
     SecurityContextHolder.getContext().setAuthentication(auth);
 }
 
 @Test
     void moderateUser_ShouldBanUserAndNotify(){
-    Long targetId=99L;
+    String targetId="bsfjghuerbvjregb";
     String reason="spam detectado";
 
     when(reportRepository.findByTargetIdAndTypeAndStatus(targetId, ReportType.USER, ReportStatus.PENDING))
@@ -67,7 +68,7 @@ verify(userClient, times(1)).banUserInternal(targetId);
     verify(adminRepository, times(1)).save(adminCaptor.capture());
     assertEquals("BAN_USER", adminCaptor.getValue().getActionType());
     assertEquals(targetId, adminCaptor.getValue().getTargetId());
-    assertEquals(1L, adminCaptor.getValue().getAdminId());
+    assertEquals(userId, adminCaptor.getValue().getAdminId());
 
     verify(rabbitTemplate).convertAndSend(
             eq(RabbitMQConfig.ADMIN_EXCHANGE),
@@ -77,7 +78,7 @@ verify(userClient, times(1)).banUserInternal(targetId);
 
 @Test
     void moderateVideo_ShouldDeleteVideoAndNotify(){
-    Long videoId=500L;
+    String videoId="shnkherkghejhgj";
     String reason="contenido inapropiado";
 
     when(reportRepository.findByTargetIdAndTypeAndStatus(videoId, ReportType.VIDEO, ReportStatus.PENDING))
@@ -97,7 +98,7 @@ verify(userClient, times(1)).banUserInternal(targetId);
 @Test
     void shouldCreateReport(){
     ReportType type=ReportType.VIDEO;
-    Long targetId=5L;
+    String targetId="bdfgkjderk";
     PredefinedReason reason=PredefinedReason.VIOLENCIA;
     String description="el video muestra esenas explisitas";
 
@@ -106,7 +107,7 @@ verify(userClient, times(1)).banUserInternal(targetId);
     ArgumentCaptor<ReportEntity> reportCaptor=ArgumentCaptor.forClass(ReportEntity.class);
 
     verify(reportRepository, times(1)).save(reportCaptor.capture());
-    assertEquals(1L, reportCaptor.getValue().getReporterId());
+    assertEquals(userId, reportCaptor.getValue().getReporterId());
     assertEquals(PredefinedReason.VIOLENCIA, reportCaptor.getValue().getReason());
     assertEquals(description, reportCaptor.getValue().getReportDescription());
 }
@@ -114,7 +115,7 @@ verify(userClient, times(1)).banUserInternal(targetId);
 @Test
     void shouldGetPendingReports(){
     VideoMetadataDto videoMetadataDto=VideoMetadataDto.builder()
-            .id(20L)
+            .id("skjfehbveksthuk5bv")
                     .title("mi video")
                             .description("la descripcion")
                                     .videoUrl("url_del_video")
@@ -123,42 +124,42 @@ verify(userClient, times(1)).banUserInternal(targetId);
 when(videoClient.getVideoDetails(anyList())).thenReturn(List.of(videoMetadataDto));
 
     ReportEntity r1=ReportEntity.builder()
-            .targetId(20L)
+            .targetId("skjfehbveksthuk5bv")
             .type(ReportType.VIDEO)
-            .reporterId(1L)
+            .reporterId(userId)
             .reason(PredefinedReason.VIOLENCIA)
             .status(ReportStatus.PENDING)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
     ReportEntity r2=ReportEntity.builder()
-            .targetId(30L)
+            .targetId("hjbkrbhkgheriuger")
             .type(ReportType.VIDEO)
-            .reporterId(1L)
+            .reporterId(userId)
             .reason(PredefinedReason.SPAM)
             .status(ReportStatus.PENDING)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 when(reportRepository.findByStatus(ReportStatus.PENDING)).thenReturn(List.of(r1, r2));
 
 List<ReportDetailDto> reports=adminService.getPendingReports();
 
 assertEquals(2, reports.size());
-assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals(20L)));
-assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals(30L)));
+assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals("skjfehbveksthuk5bv")));
+assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals("hjbkrbhkgheriuger")));
 }
 
 @Test
     void shouldMarkDismissReport(){
     ReportEntity r1=ReportEntity.builder()
-            .targetId(20L)
+            .targetId("hjbkrbhkgheriuger")
             .type(ReportType.VIDEO)
-            .reporterId(1L)
+            .reporterId(userId)
             .reason(PredefinedReason.VIOLENCIA)
             .status(ReportStatus.PENDING)
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .build();
 
-    Long targetId=20L;
+    String targetId="hjbkrbhkgheriuger";
     ReportType type=ReportType.VIDEO;
 
 when(reportRepository.findByTargetIdAndTypeAndStatus(targetId, type, ReportStatus.PENDING)).thenReturn(List.of(r1));
@@ -171,10 +172,10 @@ verify(reportRepository, times(1)).saveAll(anyList());
 
 @Test
     void dismissReport_ShouldThrowNotFound_WhenIdDoesNotExist(){
-    when(reportRepository.findByTargetIdAndTypeAndStatus(999L, ReportType.VIDEO, ReportStatus.PENDING)).thenReturn(List.of());
+    when(reportRepository.findByTargetIdAndTypeAndStatus("kdjkhrughrkre", ReportType.VIDEO, ReportStatus.PENDING)).thenReturn(List.of());
 
     assertThrows(ResponseStatusException.class, () ->{
-        adminService.dismissReport(999L, ReportType.VIDEO);
+        adminService.dismissReport("kdjkhrughrkre", ReportType.VIDEO);
     });
 }
 

@@ -24,13 +24,13 @@ private TestEntityManager entityManager;
 
 @Test
     void findNextComments_ShouldReturnOnlyCommentsWithLowerId(){
-    repository.save(CommentEntity.builder().videoId(1L).userId(1L).usernameAuthor("usuario1").content("comentario 1").build());
-    repository.save(CommentEntity.builder().videoId(1L).userId(1L).usernameAuthor("usuario1").content("comentario 2").build());
-    CommentEntity ref=repository.save(CommentEntity.builder().videoId(1L).userId(1L).usernameAuthor("usuario1").content("comentario 3").build());
+    repository.save(CommentEntity.builder().videoId("sjdfhi7whhjeds").userId("fshhfihjshiue").usernameAuthor("usuario1").content("comentario 1").build());
+    repository.save(CommentEntity.builder().videoId("sjdfhi7whhjeds").userId("fshhfihjshiue").usernameAuthor("usuario1").content("comentario 2").build());
+    CommentEntity ref=repository.save(CommentEntity.builder().videoId("sjdfhi7whhjeds").userId("fshhfihjshiue").usernameAuthor("usuario1").content("comentario 3").build());
 
     Long lastId=ref.getId();
 
-    List<CommentEntity> result=repository.findNextComments(1L, lastId, PageRequest.of(0, 10));
+    List<CommentEntity> result=repository.findNextComments("sjdfhi7whhjeds", lastId, PageRequest.of(0, 10));
 
 //validaciones
     assertEquals(2, result.size());
@@ -39,10 +39,10 @@ private TestEntityManager entityManager;
 
     @Test
 void shouldCountCommentsByVideoId(){
-repository.save(CommentEntity.builder().videoId(1L).userId(1L).usernameAuthor("usuario1").content("comentario 1").build());
-        repository.save(CommentEntity.builder().videoId(1L).userId(1L).usernameAuthor("usuario1").content("comentario 2").build());
+repository.save(CommentEntity.builder().videoId("sjdfhi7whhjeds").userId("sjafh89ehkeh").usernameAuthor("usuario1").content("comentario 1").build());
+        repository.save(CommentEntity.builder().videoId("sjdfhi7whhjeds").userId("sjafh89ehkeh").usernameAuthor("usuario1").content("comentario 2").build());
 
-    Long count =repository.countByVideoId(1L);
+    Long count =repository.countByVideoId("sjdfhi7whhjeds");
 
     //validacion
     assertEquals(2, count);
@@ -52,12 +52,12 @@ repository.save(CommentEntity.builder().videoId(1L).userId(1L).usernameAuthor("u
     @DisplayName("debe eliminar fisicamente comentarios de un video")
     void shouldDeleteCommentsOfVideo(){
     CommentEntity comment=repository.save(CommentEntity.builder()
-            .videoId(1L).userId(1L).usernameAuthor("yo").content("mi comentario").build());
+            .videoId("sjafh89ehkeh").userId("hskuy874jewg8634").usernameAuthor("yo").content("mi comentario").build());
     Long id=comment.getId();
 
     entityManager.flush();
 
-    repository.deleteByVideoId(1L);
+    repository.deleteByVideoId("sjafh89ehkeh");
 
     entityManager.clear();
     Optional<CommentEntity> deleted=repository.findById(id);

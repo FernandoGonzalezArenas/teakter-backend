@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class UserController {
                     @ApiResponse(responseCode = "404", description = "el perfil solicitado no existe")
                     })
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getPublicProfile(@PathVariable Long id){
+    public ResponseEntity<UserDto> getPublicProfile(@PathVariable String id){
         return ResponseEntity.ok(service.getProfile(id));
     }
 
@@ -65,7 +64,7 @@ public class UserController {
     }
 
     @GetMapping("/details")
-    public ResponseEntity<List<UserDto>> getProfilesDetailsBatch(@RequestParam("ids") List<Long> userIds){
+    public ResponseEntity<List<UserDto>> getProfilesDetailsBatch(@RequestParam("ids") List<String> userIds){
         return ResponseEntity.ok(service.getProfilesBatch(userIds));
     }
 
@@ -77,7 +76,7 @@ public class UserController {
                     @ApiResponse(responseCode = "404", description = "el perfil de usuario solicitado no existe")
                     })
     @DeleteMapping("/internal/{id}")
-    public ResponseEntity<String> banUserInternal(@PathVariable Long id){
+    public ResponseEntity<String> banUserInternal(@PathVariable String id){
         service.banUserInternal(id);
         return ResponseEntity.ok("la cuenta fue borrada correctamente por un administrador");
     }

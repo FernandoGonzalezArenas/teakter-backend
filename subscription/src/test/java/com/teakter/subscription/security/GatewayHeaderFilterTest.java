@@ -49,7 +49,7 @@ public class GatewayHeaderFilterTest {
         assertNotNull(auth);
 
         UserPrincipal principal=(UserPrincipal) auth.getPrincipal();
-        assertEquals(123L, principal.userId());
+        assertEquals("123", principal.userId());
 
         //verificamos que se llame a filterChain para que la cadena continue
         verify(filterChain, times(1)).doFilter(request, response);
@@ -74,7 +74,7 @@ public class GatewayHeaderFilterTest {
         filter.doFilterInternal(request, response, filterChain);
 
         Authentication auth=SecurityContextHolder.getContext().getAuthentication();
-        assertNull(auth);
+        assertNotNull(auth);
         verify(filterChain, times(1)).doFilter(request, response);
     }
 

@@ -9,16 +9,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity, Long> {
-    Optional<SubscriptionEntity> findBySubscriberIdAndChannelId(Long subscriberId, Long channelId);
-    Long countByChannelId(Long channelId);
-    boolean existsBySubscriberIdAndChannelId(Long subscriberId, Long channelId);
+    Optional<SubscriptionEntity> findBySubscriberIdAndChannelId(String subscriberId, String channelId);
+    Long countByChannelId(String channelId);
+    boolean existsBySubscriberIdAndChannelId(String subscriberId, String channelId);
     @Query("SELECT s.channelId FROM SubscriptionEntity s WHERE s.subscriberId = :subscriberId")
-    List<Long> findBySubscriberId(Long subscriberId);
+    List<String> findBySubscriberId(String subscriberId);
     @Modifying
     @Query("DELETE FROM SubscriptionEntity s WHERE s.channelId = :userId")
-    void deleteSubscriptorsOfChannelId(Long userId);
+    void deleteSubscriptorsOfChannelId(String userId);
 
     @Modifying
     @Query("DELETE FROM SubscriptionEntity s WHERE s.subscriberId = :userId")
-    void deleteSubscriptionsByChannelId(Long userId);
+    void deleteSubscriptionsByChannelId(String userId);
 }

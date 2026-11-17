@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "email_logs")
+@Table(name = "email_logs", indexes = {
+        @Index(name = "idx_emailLog_id", columnList = "id")
+})
 @Setter
 @Getter
 @AllArgsConstructor
@@ -37,6 +40,6 @@ public class EmailLogEntity {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime sentAt;
+    private Instant sentAt;
 
 }

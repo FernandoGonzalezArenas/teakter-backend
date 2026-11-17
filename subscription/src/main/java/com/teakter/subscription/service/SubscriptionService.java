@@ -6,11 +6,11 @@ import com.teakter.subscription.dto.SubscriptionStatusDto;
 
 public interface SubscriptionService {
 
-    boolean toggleSubscription(Long channelId);
-    boolean hasUserSubscription(Long channelId);
-    Long countSubscriptions(Long channelId);
-    SubscriptionStatusDto getChannelStatus(Long channelId);
-    IdsDto getSubscriptionsByUser(Long userId);
-    void deleteSubscriptionsOfUser(Long userId);
+    boolean toggleSubscription(String channelId);
+    boolean hasUserSubscription(String channelId);
+    Long countSubscriptions(String channelId);
+    SubscriptionStatusDto getChannelStatus(String channelId);
+    IdsDto getSubscriptionsByUser(String userId);
+    void deleteSubscriptionsOfUser(String userId);
 
 }

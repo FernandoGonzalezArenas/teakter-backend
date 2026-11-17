@@ -13,7 +13,7 @@ public class DataJwtUser {
 
 private String username;
 
-private Long userId;
+private String userId;
 
 private String role;
 

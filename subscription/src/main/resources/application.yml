@@ -1,5 +1,7 @@
 server:
   port: 8087
+  servlet:
+    context-path: /media/api/v1
 
 spring:
   application:
@@ -52,3 +54,7 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /subs/v3/api-docs
+
+logging:
+  level:
+    root: info

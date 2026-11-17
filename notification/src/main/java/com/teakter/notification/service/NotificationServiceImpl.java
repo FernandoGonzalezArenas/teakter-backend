@@ -24,7 +24,7 @@ private final NotificationRepository notificationRepository;
 @Override
     public List<NotificationDto> getUserNotifications(Long lastId, int limit){
     UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Long userId=principal.userId();
+    String userId=principal.userId();
 
     PageRequest pageRequest=PageRequest.of(0, limit);
 
@@ -40,7 +40,7 @@ return notificacionesUsuario.stream()
 @Override
 public Long getUnreadCount(){
     UserPrincipal principal=(UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    Long userId=principal.userId();
+    String userId=principal.userId();
 
     return notificationRepository.countByUserIdAndIsReadFalse(userId);
 }
@@ -59,7 +59,7 @@ private NotificationDto mapToDto(NotificationEntity notification){
             .userId(notification.getUserId())
             .title(notification.getTitle())
             .message(notification.getMessage())
-            .type(notification.getType())
+            .type(notification.getType().name())
             .isRead(notification.getIsRead())
             .targetUrl(notification.getTargetUrl())
             .build();

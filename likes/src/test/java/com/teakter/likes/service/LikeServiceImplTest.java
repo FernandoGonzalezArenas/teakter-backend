@@ -31,8 +31,8 @@ public class LikeServiceImplTest {
 @InjectMocks
     private LikeServiceImpl service;
 
-private Long videoId=100L;
-private Long userId=1L;
+private String videoId="fgusker9834yieurrhi";
+private String userId="glsjdtr834uu398erukr";
 
 @BeforeEach
 void setupSecurityContext(){
@@ -75,9 +75,9 @@ void setupSecurityContext(){
 
 @Test
 void shouldReturnNumberOfLikes(){
-    when(repository.countByVideoId(1L)).thenReturn(44L);
+    when(repository.countByVideoId("gksjdjo834uter8")).thenReturn(44L);
 
-    Long likes=service.countLikes(1L);
+    Long likes=service.countLikes("gksjdjo834uter8");
 
     //validacion
     assertEquals(44L, likes);
@@ -112,25 +112,25 @@ void shouldReturnNumberOfLikes(){
 
 @Test
     void getLikesVideosByUserId_ShouldReturnIdsDto(){
-    LikeEntity like1=LikeEntity.builder().videoId(10L).build();
-    LikeEntity like2=LikeEntity.builder().videoId(20L).build();
-    when(repository.findByUserId(1L)).thenReturn(List.of(like1, like2));
+    LikeEntity like1=LikeEntity.builder().videoId("kjdfht843utje8otek").build();
+    LikeEntity like2=LikeEntity.builder().videoId("jkjto85ui895").build();
+    when(repository.findByUserId(userId)).thenReturn(List.of(like1, like2));
 
-    IdsDto result=service.getLikesVideosByUserId(1L);
+    IdsDto result=service.getLikesVideosByUserId(userId);
 
     //validaciones
     assertNotNull(result);
     assertEquals(2, result.getIds().size());
-assertTrue(result.getIds().contains(10L));
-assertTrue(result.getIds().contains(20L));
+assertTrue(result.getIds().contains("kjdfht843utje8otek"));
+assertTrue(result.getIds().contains("jkjto85ui895"));
 verify(repository, times(1)).findByUserId(userId);
 }
 
 @Test
     @DisplayName("debe eliminar los likes de un video")
     void shouldDeleteLikesByVideoId(){
-    assertDoesNotThrow(() -> service.deleteLikesVideo(1L));
-    verify(repository).deleteByVideoId(1L);
+    assertDoesNotThrow(() -> service.deleteLikesVideo("gksjdjo834uter8"));
+    verify(repository).deleteByVideoId("gksjdjo834uter8");
 }
 
 }

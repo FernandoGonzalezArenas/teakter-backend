@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,7 +32,6 @@ public class VideoControllerTest {
 
     @MockBean
     private VideoService videoService;
-
 
     @Autowired
     private ObjectMapper mapper;
@@ -85,10 +85,10 @@ public class VideoControllerTest {
                                         .status(new LikeStatus(5L, true))
                                                 .build();
 
-        when(videoService.getInteractions(1L, 100L, 5))
+        when(videoService.getInteractions("fskuhi7whhjsguyewg", 100L, 5))
                 .thenReturn(interacciones);
 
-        mockMvc.perform(get("/videos/interactions/1")
+        mockMvc.perform(get("/videos/interactions/fskuhi7whhjsguyewg")
                 .param("lastId", "100")
                 .param("limit", "5"))
                 .andExpect(status().isOk())
@@ -100,9 +100,9 @@ public class VideoControllerTest {
     @WithMockUser
     void shouldReturnPlaybackData() throws Exception{
     VideoPlaybackDto playback=VideoPlaybackDto.builder().videoUrl("http://signed.com").duration(83L).build();
-    when(videoService.getVideoForPlayback(1L)).thenReturn(playback);
+    when(videoService.getVideoForPlayback("fskuhi7whhjsguyewg")).thenReturn(playback);
 
-    mockMvc.perform(get("/videos/1/play"))
+    mockMvc.perform(get("/videos/fskuhi7whhjsguyewg/play"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.videoUrl").value("http://signed.com"));
     }
@@ -111,12 +111,12 @@ public class VideoControllerTest {
     @DisplayName("POST videos/list-likes debe retornar lista de videos por IDs")
     @WithMockUser
     void shouldGetVideosBySpecificIds() throws Exception {
-        IdsDto ids = new IdsDto(List.of(1L, 2L));
-        when(videoService.getVideosByIds(1L, 100L, 5)).thenReturn(Collections.emptyList());
+        IdsDto ids = new IdsDto(List.of("fskuhi7whhjsguyewg", "fshhi7wyywy7hd"));
+        when(videoService.getVideosByIds(eq("fskuhi7whhjsguyewg"), any(Instant.class), anyInt())).thenReturn(Collections.emptyList());
 
-mockMvc.perform(get("/videos/list-likes/1")
+mockMvc.perform(get("/videos/list-likes/fskuhi7whhjsguyewg")
         .with(csrf())
-                .param("lastId", "100")
+                .param("lastCreatedAt", "2026-04-27T16:47:37.264Z")
                 .param("limit", "5"))
         .andExpect(status().isOk());
     }
@@ -125,10 +125,10 @@ mockMvc.perform(get("/videos/list-likes/1")
     @DisplayName("GET /videos/my-feed-subs debe retornar feed de subscripciones")
     @WithMockUser
     void shouldReturnsSubsFeed() throws Exception{
-        when(videoService.getSubscriptionsFeed(1L, 100L, 5)).thenReturn(Collections.emptyList());
+        when(videoService.getSubscriptionsFeed(eq("fskuhi7whhjsguyewg"), any(Instant.class), anyInt())).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/videos/my-feed-subs/1")
-                        .param("lastId", "100")
+        mockMvc.perform(get("/videos/my-feed-subs/fskuhi7whhjsguyewg")
+                        .param("lastCreatedAt", "2025-11-30T09:37:58.538Z")
                         .param("limit", "5"))
                 .andExpect(status().isOk());
     }
@@ -152,10 +152,10 @@ mockMvc.perform(delete("/videos/internal/1")
         VideoDto dto2=VideoDto.builder()
                 .title("Admin View2").duration(69L).build();
 
-        when(videoService.videoInternalDetails(List.of(1L, 2L))).thenReturn(List.of(dto1, dto2));
+        when(videoService.videoInternalDetails(List.of("fskuhi7whhjsguyewg", "sjdfhi7whhjeds"))).thenReturn(List.of(dto1, dto2));
 
         mockMvc.perform(get("/videos/internal/details")
-                        .param("ids", "1,2"))
+                        .param("ids", "fskuhi7whhjsguyewg,sjdfhi7whhjeds"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Admin View"));
     }

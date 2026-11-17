@@ -31,7 +31,7 @@ public class CommentsControllerTest {
     void createComment_ShouldReturnBadRequest_WhenContentIsTooLong() throws  Exception{
     //un comentario de mas de 1200 caracteres
     String longContent="a".repeat(1202);
-    CommentDtoEntrada entrada=new CommentDtoEntrada(1L, longContent);
+    CommentDtoEntrada entrada=new CommentDtoEntrada("sjdfhi7whhjeds", longContent);
     mockMvc.perform(post("/comentarios")
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)

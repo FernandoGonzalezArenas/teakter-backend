@@ -32,14 +32,15 @@ public class UserControllerTest {
 @Test
     void getPublicProfile_ReturnsUser() throws Exception{
     UserDto user=UserDto.builder()
+            .id("jdbfyuirtkt")
             .username("pedro")
             .bio("hola")
             .privacyLikes(true)
             .privacySubs(false)
             .build();
-when(userService.getProfile(1L)).thenReturn(user);
+when(userService.getProfile("jdbfyuirtkt")).thenReturn(user);
 
-mockMvc.perform(get("/users/1"))
+mockMvc.perform(get("/users/jdbfyuirtkt"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("pedro"));
 }

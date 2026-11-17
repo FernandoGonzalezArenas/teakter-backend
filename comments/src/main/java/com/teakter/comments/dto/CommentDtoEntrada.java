@@ -15,7 +15,7 @@ public class CommentDtoEntrada {
 
     @Schema(description = "ID de el video asociado a el comentario", example = "17")
     @NotNull(message = "el videoId es obligatorio para guardar un comentario correctamente")
-    private Long videoId;
+    private String videoId;
 
     @Schema(description = "contenido de el comentario", example = "este es mi comentario")
     @NotBlank(message = "debes ingresar el contenido de el mensaje")

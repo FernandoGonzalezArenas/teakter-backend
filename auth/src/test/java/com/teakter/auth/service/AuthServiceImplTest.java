@@ -171,9 +171,22 @@ assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, ex.getStatusCode());
 @Test
     @DisplayName("debe borrar a el usuario y a sus tokens de la base de datos")
     void banUser_ShouldDeleteUserAndTokens(){
-    assertDoesNotThrow(() -> service.banUser(1L));
-    verify(refreshTokenRepository, times(1)).deleteByUserId(1L);
-    verify(userRepository, times(1)).deleteById(1L);
+    UserEntity mockUser=UserEntity.builder()
+            .id(1L)
+            .publicUserId("fsjfh8wyhjkdb")
+            .username("fernando")
+            .password("secret98")
+            .email("fer@mail.com")
+            .isVerified(true)
+            .build();
+    Long id=mockUser.getId();
+
+    when(userRepository.findByPublicUserId("fsjfh8wyhjkdb")).thenReturn(Optional.of(mockUser));
+
+    assertDoesNotThrow(() -> service.banUser("fsjfh8wyhjkdb"));
+    verify(refreshTokenRepository, times(1)).deleteByUserId(id);
+
+    verify(userRepository, times(1)).deleteById(id);
     }
 
 

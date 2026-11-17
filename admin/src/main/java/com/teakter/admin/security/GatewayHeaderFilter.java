@@ -24,9 +24,7 @@ public class GatewayHeaderFilter extends OncePerRequestFilter {
     String role_str=request.getHeader("X-User-Role");
 
     if (userId_str!=null && !userId_str.isEmpty()){
-        try {
-            Long userId=Long.parseLong(userId_str);
-            UserPrincipal principal=new UserPrincipal(userId, null);
+            UserPrincipal principal=new UserPrincipal(userId_str, null);
 
             List<SimpleGrantedAuthority> authorities= Collections.emptyList();
             if (role_str!=null && !role_str.isEmpty()){
@@ -39,9 +37,6 @@ public class GatewayHeaderFilter extends OncePerRequestFilter {
                     principal, null,
 authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
-        }catch (NumberFormatException e){
-logger.error("formato de X-User-Id invalido: "+userId_str);
-        }
     }
     filterChain.doFilter(request, response);
 }

@@ -15,6 +15,6 @@ import java.util.List;
 public class IdsDto {
 
     @Schema(description = "lista de ID's de videos gustados por el usuario", example = "[1,5,7,28,36]")
-private List<Long> Ids;
+private List<String> Ids;
 
 }

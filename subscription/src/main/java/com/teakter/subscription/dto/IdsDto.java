@@ -13,6 +13,6 @@ import java.util.List;
 public class IdsDto {
 
     @Schema(description = "lista de ID's de canales a los que esta subscrito un usuario", example = "[6,17,47,81,386]")
-    private List<Long> Ids;
+    private List<String> Ids;
 
 }

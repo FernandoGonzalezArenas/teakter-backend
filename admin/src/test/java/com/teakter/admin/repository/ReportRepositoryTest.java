@@ -20,50 +20,50 @@ private ReportRepository reportRepository;
 @Test
     void shouldFindByStatus(){
 reportRepository.save(ReportEntity.builder()
-        .targetId(1L)
-        .reporterId(10L)
+        .targetId("sdjfhie4hjkfghfjd")
+        .reporterId("gjdhfiuernkgjdfgjk")
         .status(ReportStatus.PENDING)
         .build());
 reportRepository.save(ReportEntity.builder()
-        .targetId(2L)
-        .reporterId(20L)
+        .targetId("hkfjgi8trhjkdf")
+        .reporterId("hukghdkjndgkreng")
         .status(ReportStatus.DISMISSED).build());
 reportRepository.save(ReportEntity.builder()
-        .targetId(3L)
-        .reporterId(30L)
+        .targetId("jgithgkjdfgf")
+        .reporterId("gfjdhgi8 ynergjkd")
         .status(ReportStatus.PENDING)
         .build());
 
     List<ReportEntity> reports=reportRepository.findByStatus(ReportStatus.PENDING);
 
     assertEquals(2, reports.size());
-    assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals(1L)));
-    assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals(3L)));
+    assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals("sdjfhie4hjkfghfjd")));
+    assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals("jgithgkjdfgf")));
 }
 
 @Test
     void shouldFindByType(){
     reportRepository.save(ReportEntity.builder()
-            .targetId(1L)
-            .reporterId(10L)
+            .targetId("gjkdfhguehjfnbkgb")
+            .reporterId("hjkdhg8idnhjdfbn")
             .type(ReportType.VIDEO)
             .build());
     reportRepository.save(ReportEntity.builder()
-            .targetId(2L)
-            .reporterId(20L)
+            .targetId("bjdfhgierngdfbjdmx")
+            .reporterId("hkgjierntjgehsjtb")
             .type(ReportType.USER)
             .build());
     reportRepository.save(ReportEntity.builder()
-            .targetId(3L)
-            .reporterId(30L)
+            .targetId("hjkretnknv")
+            .reporterId("hkretnerhvbsakdnitnbgvb")
             .type(ReportType.VIDEO)
             .build());
 
 List<ReportEntity> reports=reportRepository.findByType(ReportType.VIDEO);
 
 assertEquals(2, reports.size());
-assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals(1L)));
-assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals(3L)));
+assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals("gjkdfhguehjfnbkgb")));
+assertTrue(reports.stream().anyMatch(r -> r.getTargetId().equals("hjkretnknv")));
 }
 
 }

@@ -25,26 +25,26 @@ private TestEntityManager entityManager;
 @Test
     void shouldSaveLikeSuccessfully(){
     LikeEntity like=LikeEntity.builder()
-            .userId(1L)
-            .videoId(100L)
+            .userId("sjafh89ehkeh")
+            .videoId("sdjhri34yuh8733")
             .build();
 
     LikeEntity saved=repository.save(like);
 
     //validaciones
     assertNotNull(saved.getId());
-    assertTrue(repository.existsByUserIdAndVideoId(1L, 100L));
+    assertTrue(repository.existsByUserIdAndVideoId("sjafh89ehkeh", "sdjhri34yuh8733"));
 }
 
 @Test
     void shouldFailWhenDuplicateLikeIsInserted(){
     LikeEntity like1=LikeEntity.builder()
-            .userId(1L).videoId(100L).build();
+            .userId("sjafh89ehkeh").videoId("sjhi8ehti54y48").build();
     repository.saveAndFlush(like1);
 
     //intentamos guardar otra vez exactamente el mismo like
     LikeEntity like2=LikeEntity.builder()
-            .userId(1L).videoId(100L).build();
+            .userId("sjafh89ehkeh").videoId("sjhi8ehti54y48").build();
 
     //debe lanzar una excepcion de integridad de datos al querer guardar el mismo like otra vez
     assertThrows(DataIntegrityViolationException.class, () -> {
@@ -55,10 +55,10 @@ private TestEntityManager entityManager;
 @Test
     void ShouldCountLikesByVideoId(){
     //simular likes en videos
-    repository.save(LikeEntity.builder().userId(1L).videoId(200L).build());
-    repository.save(LikeEntity.builder().userId(2L).videoId(200L).build());
+    repository.save(LikeEntity.builder().userId("sjafh89ehkeh").videoId("fshdhr734yuehitrd").build());
+    repository.save(LikeEntity.builder().userId("fhsdhriu34uo9eru98").videoId("fshdhr734yuehitrd").build());
 
-    Long count=repository.countByVideoId(200L);
+    Long count=repository.countByVideoId("fshdhr734yuehitrd");
 
     //validacion
     assertEquals(2, count);
@@ -66,27 +66,27 @@ private TestEntityManager entityManager;
 
 @Test
     void shouldFindAllLikesByUserId(){
-    repository.save(LikeEntity.builder().userId(1L).videoId(101L).build());
-    repository.save(LikeEntity.builder().userId(1L).videoId(102L).build());
-    repository.save(LikeEntity.builder().userId(2L).videoId(103L).build());
+    repository.save(LikeEntity.builder().userId("fhsdhf7ihf9834y7e").videoId("gsjkjto85eu98teiu").build());
+    repository.save(LikeEntity.builder().userId("fhsdhf7ihf9834y7e").videoId("hdlfug8954up994u98rtlk").build());
+    repository.save(LikeEntity.builder().userId("jhiogu458ojro845oitrhi").videoId("hfdbfgoiu45ojeo8thekhgek").build());
 
-    List<LikeEntity> result=repository.findByUserId(1L);
+    List<LikeEntity> result=repository.findByUserId("fhsdhf7ihf9834y7e");
 
     assertEquals(2, result.size());
-    assertTrue(result.stream().anyMatch(l -> l.getVideoId().equals(101L)));
-    assertTrue(result.stream().anyMatch(l -> l.getVideoId().equals(102L)));
+    assertTrue(result.stream().anyMatch(l -> l.getVideoId().equals("gsjkjto85eu98teiu")));
+    assertTrue(result.stream().anyMatch(l -> l.getVideoId().equals("hdlfug8954up994u98rtlk")));
 }
 
 @Test
     @DisplayName("debe borrar los likes fisicamente de la base de datos con respecto a el video")
     void shouldDeleteLikesByVideoId(){
     LikeEntity like=repository.save(LikeEntity.builder()
-            .videoId(1L).userId(10L).build());
+            .videoId("hdlfug8954up994u98rtlk").userId("jdsdhoiru823hk4wiur3h4i").build());
     Long id=like.getId();
 
 entityManager.flush();
 
-repository.deleteByVideoId(1L);
+repository.deleteByVideoId("hdlfug8954up994u98rtlk");
 
 entityManager.clear();
     Optional<LikeEntity> deleted=repository.findById(id);

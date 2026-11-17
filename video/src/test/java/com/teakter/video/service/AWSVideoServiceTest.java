@@ -22,12 +22,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.net.URL;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +64,7 @@ private RabbitTemplate rabbitTemplate;
 private PresignedPutObjectRequest presignedPutObjectRequest;
 
 private AWSVideoServiceImpl service;
-private final Long userId=1L;
+private final String userId="sjhjfi8ehi3ye";
 String cloudfrontDomain="d3am6ojx8a1nkx.cloudfront.net";
 
 @BeforeEach
@@ -97,7 +97,7 @@ String cloudfrontDomain="d3am6ojx8a1nkx.cloudfront.net";
     verify(repository).save(captor.capture());
     VideoEntity entity=captor.getValue();
 
-    assertEquals(1L, entity.getUserId());
+    assertEquals(userId, entity.getUserId());
 //validamos la logica exacta de construccion de url de AWS
     assertEquals("clip.mp4", entity.getVideoUrl());
 }
@@ -137,7 +137,7 @@ void shouldGenerateUploadUrlThumb() throws Exception{
 void shouldSearchVideosByTitle(){
     String keyword="java";
     String type="";
-    VideoEntity entity=VideoEntity.builder().userId(2L).title("video java").duration(37L).build();
+    VideoEntity entity=VideoEntity.builder().publicVideoId("jshif7yh73yud").userId("fsdhfi8hkudhg7e").title("video java").duration(37L).build();
     Page<VideoEntity> page=new PageImpl<>(List.of(entity));
 
     when(repository.searchByTitle(eq(keyword), any(PageRequest.class))).thenReturn(page);
@@ -150,13 +150,15 @@ void shouldSearchVideosByTitle(){
 
 @Test
 void shouldGetFeedCorrectly(){
-    VideoEntity v1=VideoEntity.builder().id(5L).userId(2L).title("v1").duration(84L).build();
+    Instant fixedInstant=Instant.now();
 
-    when(repository.findNextLongVideos(anyLong(), any(PageRequest.class))).thenReturn(List.of(v1));
-    List<VideoDto> results=service.getLongsFeed(10L, 5);
+    VideoEntity v1=VideoEntity.builder().id(5L).publicVideoId("gfsyhuiehjkeid").userId("gfsfy83uu8ieuhuidhgjd").title("v1").duration(84L).createdAt(fixedInstant).build();
+
+    when(repository.findNextLongVideos(any(Instant.class), any(PageRequest.class))).thenReturn(List.of(v1));
+    List<VideoDto> results=service.getLongsFeed(fixedInstant, 5);
 
     assertEquals(1, results.size());
-    verify(repository).findNextLongVideos(eq(10L), any(PageRequest.class));
+    verify(repository).findNextLongVideos(eq(fixedInstant), any(PageRequest.class));
 }
 
 @Test
@@ -170,34 +172,31 @@ VideoEntity video=VideoEntity.builder()
         .build();
     String fakeSignedUrl = "https://" + cloudfrontDomain + "/videos/hls/clip-123/master.m3u8";
 
-    when(repository.findById(10L)).thenReturn(Optional.of(video));
-//    when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class))).thenReturn(presignedGetObjectRequest);
-//    when(presignedGetObjectRequest.url()).thenReturn(new URL(fakeSignedUrl));
+    when(repository.findByPublicVideoId("sjhf7i3yw7i834u3")).thenReturn(Optional.of(video));
 
-    VideoPlaybackDto result=service.getVideoForPlayback(10L);
+    VideoPlaybackDto result=service.getVideoForPlayback("sjhf7i3yw7i834u3");
 
     assertNotNull(result);
     assertEquals(fakeSignedUrl, result.getVideoUrl());
-//    verify(s3Presigner).presignGetObject(any(GetObjectPresignRequest.class));
 }
 
 @Test
     @DisplayName("AWS: debe retornar 404 cuando el video no exista para reproduccion")
     void shouldThrowNotFoundWhenVideoDoesNotExist(){
-when(repository.findById(99L)).thenReturn(Optional.empty());
+when(repository.findByPublicVideoId("fwhshgruiy3487yukehj")).thenReturn(Optional.empty());
 
-assertThrows(ResponseStatusException.class, () -> service.getVideoForPlayback(99L));
+assertThrows(ResponseStatusException.class, () -> service.getVideoForPlayback("fwhshgruiy3487yukehj"));
 }
 
 @Test
     @DisplayName("debe obtener el feed de subscripciones basado en el usuario autenticado")
     void shouldGetSubscriptionsFeedAWS(){
-    UserDto user=UserDto.builder().id(2L).username("fernando").privacySubs(true).build();
+    UserDto user=UserDto.builder().id("jto84uth4i8e").username("fernando").privacySubs(true).build();
 
-    when(userService.getProfile(2L)).thenReturn(user);
+    when(userService.getProfile("jto84uth4i8e")).thenReturn(user);
 
-    List<Long> followedChannels=List.of(100L, 200L);
-when(subscriptionService.getSubscriptionsByUser(anyLong())).thenReturn(followedChannels);
+    List<String> followedChannels=List.of("fsjfh8iheughedd", "jheuty37y3487eud");
+when(subscriptionService.getSubscriptionsByUser(anyString())).thenReturn(followedChannels);
 
 VideoEntity video=VideoEntity.builder()
                 .title("video subs")
@@ -205,63 +204,70 @@ VideoEntity video=VideoEntity.builder()
         .duration(38L)
                                 .videoUrl("url")
                                         .thumbnailUrl("thumb")
+        .createdAt(Instant.now())
                                                 .build();
 when(repository.findByUserIdInOrderByCreatedAtDesc(followedChannels, null, PageRequest.of(0,5)))
         .thenReturn(List.of(video));
 
-List<VideoDto> result=service.getSubscriptionsFeed(2L, null, 5);
+List<VideoDto> result=service.getSubscriptionsFeed("jto84uth4i8e", null, 5);
 
 assertEquals(1, result.size());
-verify(subscriptionService).getSubscriptionsByUser(anyLong());
+verify(subscriptionService).getSubscriptionsByUser(anyString());
 verify(repository).findByUserIdInOrderByCreatedAtDesc(followedChannels, null, PageRequest.of(0, 5));
 }
 
 @Test
     @DisplayName("ADMIN: debe eliminar el video si el usuario tiene ROLE_ADMIN")
     void deleteVideoInternal_ShouldDelete_WhenUserIsAdmin(){
-    Long videoId=1L;
-    UserPrincipal principal=new UserPrincipal(99L, "userAdmin");
+    String videoId="sj8fue984h498ehj";
+
+    VideoEntity video=VideoEntity.builder()
+            .id(1L)
+            .publicVideoId(videoId)
+            .userId("fsdhj8ieheud")
+            .title("t").description("d").duration(25L).videoUrl("u").thumbnailUrl("t").build();
+Long id=video.getId();
+
+    UserPrincipal principal=new UserPrincipal("fsfjh3iuhejbhjd", "userAdmin");
     var auth=new UsernamePasswordAuthenticationToken(principal,
             null,
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     SecurityContextHolder.getContext().setAuthentication(auth);
-    when(repository.existsById(videoId)).thenReturn(true);
+    when(repository.findByPublicVideoId(videoId)).thenReturn(Optional.of(video));
 
     assertDoesNotThrow(() -> service.deleteVideoInternal(videoId));
-    verify(repository).deleteById(videoId);
+    verify(repository).deleteById(id);
 }
 
 @Test
     @DisplayName("ADMIN: debe lanzar 403 al intentar borrar si el usuario no es admin")
     void deleteVideoInternal_ShouldThrowForbidden_WhenUserNotIsAdmin(){
-    UserPrincipal principal=new UserPrincipal(1L, "user");
+    UserPrincipal principal=new UserPrincipal(userId, "user");
     var auth=new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-ResponseStatusException ex=assertThrows(ResponseStatusException.class, () -> service.deleteVideoInternal(1L));
+ResponseStatusException ex=assertThrows(ResponseStatusException.class, () -> service.deleteVideoInternal("jslrsh9834ui38t4"));
 assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
 }
 
 @Test
     @DisplayName("ADMIN: debe retornar detalles completos de el video para el admin")
     void videoInternalDetails_ShouldReturnDetails_WhenUserIsAdmin() throws Exception{
-    List<Long> videoIds=List.of(1L, 2L, 3L);
-    UserPrincipal principal=new UserPrincipal(99L, "userAdmin");
+    List<String> videoIds=List.of("fjttu983yeuihdj", "gfsduy873ueh", "fshjyt874yuehdk");
+    UserPrincipal principal=new UserPrincipal("fskfhe8iheeh87", "userAdmin");
     var auth=new UsernamePasswordAuthenticationToken(principal,
             null,
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     SecurityContextHolder.getContext().setAuthentication(auth);
 
     VideoEntity v1=VideoEntity.builder()
-            .id(1L).title("Video Admin1").duration(48L).videoUrl("clip1.mp4").build();
+            .id(1L).publicVideoId("fjttu983yeuihdj").title("Video Admin1").duration(48L).videoUrl("clip1.mp4").build();
     VideoEntity v2=VideoEntity.builder()
-            .id(2L).title("Video Admin2").duration(78L).videoUrl("clip2.mp4").build();
+            .id(2L).publicVideoId("gfsduy873ueh").title("Video Admin2").duration(78L).videoUrl("clip2.mp4").build();
     VideoEntity v3=VideoEntity.builder()
-            .id(3L).title("Video Admin3").duration(35L).videoUrl("clip3.mp4").build();
+            .id(3L).publicVideoId("fshjyt874yuehdk").title("Video Admin3").duration(35L).videoUrl("clip3.mp4").build();
 
-    when(repository.findAllById(videoIds)).thenReturn(List.of(v1, v2, v3));
-//when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class))).thenReturn(presignedGetObjectRequest);
-//when(presignedGetObjectRequest.url()).thenReturn(new URL("http://url-firmada-aws.com"));
+    when(repository.findAllByPublicVideoId(videoIds)).thenReturn(List.of(v1, v2, v3));
 
     List<VideoDto> results=service.videoInternalDetails(videoIds);
 
@@ -273,25 +279,25 @@ assertEquals("https://" + cloudfrontDomain + "/videos/hls/clip1/master.m3u8", re
 @Test
     @DisplayName("ADMIN: debe retornar 404 si el video no existe")
     void videoInternalDetails_ShouldThrowNotFound_WhenVideoNotExist(){
-    UserPrincipal principal=new UserPrincipal(99L, "userAdmin");
+    UserPrincipal principal=new UserPrincipal("fskfj8uuiehkje", "userAdmin");
     var auth=new UsernamePasswordAuthenticationToken(
             principal,
             null,
             List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    when(repository.findAllById(List.of(99L))).thenReturn(Collections.emptyList());
+    when(repository.findAllByPublicVideoId(List.of("sjfhwihe8yekd"))).thenReturn(Collections.emptyList());
 
-    List<VideoDto> results=service.videoInternalDetails(List.of(99L));
+    List<VideoDto> results=service.videoInternalDetails(List.of("sjfhwihe8yekd"));
 
     assertTrue(results.isEmpty());
 }
 
 @Test
     void shouldHandleEmptySubscriptions(){
-    when(subscriptionService.getSubscriptionsByUser(anyLong())).thenReturn(Collections.emptyList());
+    when(subscriptionService.getSubscriptionsByUser(anyString())).thenReturn(Collections.emptyList());
 
-    List<VideoDto> results=service.getSubscriptionsFeed(1L, null, 5);
+    List<VideoDto> results=service.getSubscriptionsFeed(userId, null, 5);
 
     assertTrue(results.isEmpty());
     verify(repository, never()).findByUserIdInOrderByCreatedAtDesc(Collections.emptyList(), null, PageRequest.of(0, 5));

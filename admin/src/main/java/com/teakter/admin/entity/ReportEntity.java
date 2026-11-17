@@ -6,10 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reports")
+@Table(name = "reports", indexes = {
+        @Index(name = "idx_report_id", columnList = "id"),
+        @Index(name = "idx_report_targetId", columnList = "targetId"),
+        @Index(name = "idx_report_reporterId", columnList = "reporterId")
+})
 @Data
 @Builder
 @AllArgsConstructor
@@ -19,12 +24,12 @@ public class ReportEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long targetId; //id de el recurso solicitado
+    private String targetId; //id de el recurso solicitado
 
 @Enumerated(EnumType.STRING)
 private ReportType type; //tipo de el recurso
 
-    private Long reporterId; //id de el usuario que reporta
+    private String reporterId; //id de el usuario que reporta
 
     @Enumerated(EnumType.STRING)
     private PredefinedReason reason; //motivo
@@ -35,10 +40,10 @@ private ReportType type; //tipo de el recurso
     @Builder.Default
 @Enumerated(EnumType.STRING)
     private ReportStatus status=ReportStatus.PENDING;
-private LocalDateTime createdAt;
+private Instant createdAt;
 
 @PrePersist
     protected void onCreate(){
-    this.createdAt=LocalDateTime.now();
+    this.createdAt=Instant.now();
 }
 }

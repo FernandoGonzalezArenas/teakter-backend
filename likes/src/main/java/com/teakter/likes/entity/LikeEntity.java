@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "likes", uniqueConstraints = @UniqueConstraint(columnNames = {"userId", "videoId"}))
+@Table(name = "likes", uniqueConstraints = @UniqueConstraint(columnNames = {"userId", "videoId"}), indexes = {
+        @Index(name = "idx_like_id", columnList = "id"),
+        @Index(name = "idx_like_videoId", columnList = "videoId"),
+        @Index(name = "idx_like_userId", columnList = "userId")
+})
 @Setter
 @Getter
 @AllArgsConstructor
@@ -16,9 +20,9 @@ public class LikeEntity {
     private Long id;
 
 @Column(nullable = false)
-    private Long videoId;
+    private String videoId;
 
 @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
 }
